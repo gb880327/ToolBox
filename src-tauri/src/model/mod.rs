@@ -1,8 +1,9 @@
-use crate::database::BaseModel;
 use async_trait::async_trait;
 
+use crate::database::BaseModel;
+
 #[crud_table(table_name: project)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Project {
     pub id: i64,
     pub name: String,
@@ -16,10 +17,10 @@ impl BaseModel<Project> for Project {
 }
 
 #[crud_table(table_name: deploy_project)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DeployProject {
     pub id: i64,
-    pub name: String,
+    pub project_id: i64,
     pub source_dir: String,
     pub target_name: String,
 }
@@ -32,7 +33,7 @@ impl BaseModel<DeployProject> for DeployProject {
 }
 
 #[crud_table(table_name: command)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Command {
     pub id: i64,
     pub project_id: i64,
@@ -50,7 +51,7 @@ impl BaseModel<Command> for Command {
 }
 
 #[crud_table(table_name: server)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Server {
     pub id: i64,
     pub name: String,
@@ -69,7 +70,7 @@ impl BaseModel<Server> for Server {
 }
 
 #[crud_table(table_name: datasource)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataSource {
     pub id: i64,
     pub name: String,
@@ -90,7 +91,7 @@ impl BaseModel<DataSource> for DataSource {
 }
 
 #[crud_table(table_name: category)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
     pub id: i64,
     pub name: String,
@@ -104,7 +105,7 @@ impl BaseModel<Category> for Category {
 }
 
 #[crud_table(table_name: gen_project)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenProject {
     pub id: i64,
     pub project_id: i64,
@@ -123,7 +124,7 @@ impl BaseModel<GenProject> for GenProject {
 }
 
 #[crud_table(table_name: template)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Template {
     pub id: i64,
     pub category_id: i64,

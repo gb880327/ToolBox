@@ -102,12 +102,6 @@ CREATE TABLE "server" (
 );
 
 -- ----------------------------
--- Table structure for sqlite_sequence
--- ----------------------------
-DROP TABLE IF EXISTS "sqlite_sequence";
-CREATE TABLE sqlite_sequence(name,seq);
-
--- ----------------------------
 -- Table structure for template
 -- ----------------------------
 DROP TABLE IF EXISTS "template";
