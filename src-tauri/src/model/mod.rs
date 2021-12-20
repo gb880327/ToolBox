@@ -95,6 +95,7 @@ impl BaseModel<DataSource> for DataSource {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Category {
     pub id: i64,
+    pub parent_id: i64,
     pub name: String,
 }
 

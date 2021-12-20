@@ -36,7 +36,7 @@ export default {
         }
     },
     methods: {
-        show(){
+        show(id){
             this.$refs.dialog.show()
         },
         handleTabsEdit(targetName, action){

@@ -15,6 +15,21 @@ let routes = [{
         name: "server",
         component: (resolve) => require(["@/views/server/index.vue"], resolve),
     },
+    {
+        path: "/codegen",
+        name: "codegen",
+        component: (resolve) => require(["@/views/codegen/index.vue"], resolve)
+    },
+    {
+        path: "/datasource",
+        name: "datasource",
+        component: (resolve) => require(["@/views/codegen/datasource.vue"], resolve)
+    },
+    {
+        path: "/template",
+        name: "template",
+        component: (resolve) => require(["@/views/codegen/template.vue"], resolve)
+    }
 ];
 const router = new VueRouter({
     mode: "history",

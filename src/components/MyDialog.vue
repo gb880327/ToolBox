@@ -1,5 +1,5 @@
 <template>
-    <el-dialog :visible.sync="dialog" :title="title" :width="width" :close-on-click-modal="false" @close="closeHandler">
+    <el-dialog :visible.sync="dialog" :title="title" :width="width" :close-on-click-modal="false" @close="closeHandler" top="5vh">
         <slot name="content"></slot>
         <div style="text-align: center;margin-top: 15px;">
             <el-button @click="cancelHandler" style="margin-right: 5px;" :style="{width: btnWidth ? btnWidth : ''}" size="small">取消</el-button>

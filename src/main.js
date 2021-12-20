@@ -7,14 +7,19 @@ import Swal from 'sweetalert2'
 import App from "./App.vue";
 import MyPagination from "@/components/pagination";
 import MyDialog from '@/components/MyDialog'
+import Treeselect from '@riophae/vue-treeselect'
+import '@riophae/vue-treeselect/dist/vue-treeselect.css'
+import config from '@/libs/config'
 
 // import { listen } from "@tauri-apps/api/event";
 // import { invoke } from "@tauri-apps/api/tauri";
 
 Vue.use(ElementUI);
+Vue.component('Treeselect', Treeselect)
 Vue.component('myPagination', MyPagination)
 Vue.component('myDialog', MyDialog)
 Vue.config.productionTip = false;
+Vue.prototype.config = config
 
 // listen("error", (event) => {
 //     alert(event.payload);

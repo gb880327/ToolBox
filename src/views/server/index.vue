@@ -143,7 +143,7 @@ export default {
             this.$refs.dialog.show()
         },
         remove(row){
-            this.$confirm("确认删除此数据！").then(()=>{
+            this.confirm("确认删除此数据！").then(()=>{
                 
             }).catch(err=>{
 

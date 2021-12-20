@@ -21,6 +21,7 @@ PRAGMA foreign_keys = false;
 DROP TABLE IF EXISTS "category";
 CREATE TABLE "category" (
   "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "parent_id" INTEGER,
   "name" TEXT(50)
 );
 
@@ -72,7 +73,6 @@ CREATE TABLE "gen_project" (
   "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   "project_id" INTEGER(11),
   "datasource" INTEGER(11),
-  "root_path" TEXT,
   "output" TEXT,
   "template" TEXT,
   "type_mapping" TEXT

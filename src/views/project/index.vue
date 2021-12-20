@@ -9,11 +9,16 @@
             <el-table-column property="path" label="项目路径" align="center"></el-table-column>
             <el-table-column label="部署设置" align="center">
                 <template slot-scope="scope">
-                    <el-button type="success" icon="el-icon-setting" size="mini" circle @click="$refs.deploySetting.show()"></el-button>
+                    <el-button type="success" icon="el-icon-setting" size="mini" circle @click="$refs.deploySetting.show(scope.row.id)"></el-button>
                     <el-button type="primary" size="mini" circle @click="goto('/deploy', {id: scope.row.id})"><i class="el-icon-deploy"></i></el-button>
                 </template>
             </el-table-column>
-            <el-table-column label="代码生成设置" align="center"></el-table-column>
+            <el-table-column label="代码生成设置" align="center">
+                <template slot-scope="scope">
+                    <el-button type="success" icon="el-icon-setting" size="mini" circle @click="$refs.codegenSetting.show(scope.row.id)"></el-button>
+                    <el-button type="primary" size="mini" circle @click="goto('/codegen', {id: scope.row.id})"><i class="el-icon-generated"></i></el-button>
+                </template>
+            </el-table-column>
             <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
                     <el-button type="primary" icon="el-icon-edit" size="mini" circle @click="modify(scope.row)"></el-button>
@@ -33,21 +38,22 @@
             </el-form>
         </myDialog>
         <deploy-setting ref="deploySetting"></deploy-setting>
+        <codegen-setting ref="codegenSetting"></codegen-setting>
     </div>
 </template>
 <script>
 import deploySetting from '../deploy/setting.vue'
+import codegenSetting from '../codegen/setting.vue'
 
 export default {
-    components: {deploySetting},
+    components: {deploySetting, codegenSetting},
     data(){
         return {
             title: '',
             total: 0,
             pageNum: 0,
             pageSize: 10,
-            data: [{name: 'test', path: 'test'}],
-            total: 0,
+            data: [{id: 1, name: 'test', path: 'test'}],
             form: {
                 id: '',
                 name: '',
@@ -69,9 +75,13 @@ export default {
             this.pageSize = pageSize;
         },
         ok(){
-            this.data.push(JSON.parse(JSON.stringify(this.form)))
-            this.$refs.dialog.close()
-            this.cancel()
+            this.$refs.projectForm.validate(valid=> {
+                if(valid){
+                    this.data.push(JSON.parse(JSON.stringify(this.form)))
+                    this.$refs.dialog.close()
+                    this.cancel()
+                }
+            })
         },
         cancel(){
             this.form = {
@@ -86,7 +96,7 @@ export default {
             this.$refs.dialog.show()
         },
         remove(row){
-            this.$confirm("确认删除此数据！").then(()=>{
+            this.confirm("确认删除此数据！").then(()=>{
                 
             }).catch(err=>{
 
