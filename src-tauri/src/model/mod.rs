@@ -7,6 +7,7 @@ use crate::database::BaseModel;
 pub struct Project {
     pub id: i64,
     pub name: String,
+    pub path: String
 }
 
 #[async_trait]

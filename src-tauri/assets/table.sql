@@ -84,7 +84,8 @@ CREATE TABLE "gen_project" (
 DROP TABLE IF EXISTS "project";
 CREATE TABLE "project" (
   "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "name" TEXT(50)
+  "name" TEXT(50),
+  "path" TEXT(50)
 );
 
 -- ----------------------------
