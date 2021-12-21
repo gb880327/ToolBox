@@ -9,14 +9,33 @@
                 </ul>
             </el-col>
             <el-col :span="18" style="padding: 0 10px;">
-                <el-button type="success" round size="small">执行 <i class="el-icon-caret-right"></i></el-button>
+                <el-button type="success" round size="small" style="width: 120px;">执行 <i class="el-icon-caret-right"></i></el-button>
                 <el-divider></el-divider>
                 <el-row>
-                    <el-col :span="12">
-                        <el-card class="box-card"></el-card>
+                    <el-col :span="11">
+                        <el-card class="box-card">
+                            <div slot="header">
+                                <el-checkbox v-model="allDbChecked" style="display: inline !important;"></el-checkbox>
+                                <span style="padding-left:10px;">数据表</span>
+                            </div>
+                            <el-checkbox-group v-model="tables" size="small">
+                                <el-checkbox label="备选项1"></el-checkbox>
+                                <el-checkbox label="备选项2"></el-checkbox>
+                            </el-checkbox-group>
+                        </el-card>
                     </el-col>
+                    <el-col :span="1">&nbsp;</el-col>
                     <el-col :span="12">
-                        <el-card class="box-card"></el-card>
+                        <el-card class="box-card">
+                            <div slot="header">
+                                <el-checkbox v-model="allTemplateChecked" style="display: inline !important;"></el-checkbox>
+                                <span style="padding-left:10px;">项目模板</span>
+                            </div>
+                            <el-checkbox-group v-model="templates" size="small">
+                                <el-checkbox label="备选项1"></el-checkbox>
+                                <el-checkbox label="备选项2"></el-checkbox>
+                            </el-checkbox-group>
+                        </el-card>
                     </el-col>
                 </el-row>
             </el-col>
@@ -29,7 +48,11 @@ export default {
         return {
             height: window.innerHeight - 90,
             projects: [{id: 1, name: 'Demo'}, {id: 2, name: 'Test'}],
-            current: {id: 1}
+            current: {id: 1},
+            allDbChecked: false,
+            allTemplateChecked: false,
+            tables: [],
+            templates: []
         }
     },
     methods: {
@@ -67,5 +90,13 @@ export default {
 .selected {
   background-color: #25374F;
   border: 1px solid #FFFFFF !important;
+}
+.el-checkbox {
+    display: block !important;
+    line-height: 26px !important;
+}
+.box-card {
+    height: 100%;
+    overflow-y: scroll;
 }
 </style>
