@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use rbatis::plugin::snowflake::new_snowflake_id;
 
 use crate::database::BaseModel;
 
@@ -12,7 +13,10 @@ pub struct Project {
 
 #[async_trait]
 impl BaseModel<Project> for Project {
-    fn meta(&self) -> Project {
+    fn meta(&mut self) -> Project {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -28,7 +32,10 @@ pub struct DeployProject {
 
 #[async_trait]
 impl BaseModel<DeployProject> for DeployProject {
-    fn meta(&self) -> DeployProject {
+    fn meta(&mut self) -> DeployProject {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -46,7 +53,10 @@ pub struct Command {
 
 #[async_trait]
 impl BaseModel<Command> for Command {
-    fn meta(&self) -> Command {
+    fn meta(&mut self) -> Command {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -65,7 +75,10 @@ pub struct Server {
 
 #[async_trait]
 impl BaseModel<Server> for Server {
-    fn meta(&self) -> Server {
+    fn meta(&mut self) -> Server {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -86,7 +99,10 @@ pub struct DataSource {
 
 #[async_trait]
 impl BaseModel<DataSource> for DataSource {
-    fn meta(&self) -> DataSource {
+    fn meta(&mut self) -> DataSource {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -101,7 +117,10 @@ pub struct Category {
 
 #[async_trait]
 impl BaseModel<Category> for Category {
-    fn meta(&self) -> Category {
+    fn meta(&mut self) -> Category {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -120,7 +139,10 @@ pub struct GenProject {
 
 #[async_trait]
 impl BaseModel<GenProject> for GenProject {
-    fn meta(&self) -> GenProject {
+    fn meta(&mut self) -> GenProject {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }
@@ -137,7 +159,10 @@ pub struct Template {
 
 #[async_trait]
 impl BaseModel<Template> for Template {
-    fn meta(&self) -> Template {
+    fn meta(&mut self) -> Template {
+        if self.id == -1 {
+            self.id = new_snowflake_id();
+        }
         self.clone()
     }
 }

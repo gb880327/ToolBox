@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use rbatis::crud::{CRUD, CRUDTable};
-use rbatis::Error;
+use rbatis::{DriverType, Error};
 use rbatis::executor::Executor;
 use rbatis::plugin::page::{Page, PageRequest};
 use rbatis::rbatis::Rbatis;
@@ -17,6 +17,10 @@ pub async fn exec_sql(rb: &Rbatis, sql: &str, args: Option<Vec<Value>>) -> Resul
     Ok(result.rows_affected)
 }
 
+pub fn new_wrapper() -> Wrapper {
+    Wrapper::new(&DriverType::Sqlite)
+}
+
 fn unwrap<T>(task: Result<T, Error>) -> Option<T> {
     match task {
         Ok(result) => Some(result),
@@ -26,7 +30,7 @@ fn unwrap<T>(task: Result<T, Error>) -> Option<T> {
 
 #[async_trait]
 pub trait BaseModel<T: CRUDTable + for<'de> Deserialize<'de>> {
-    fn meta(&self) -> T;
+    fn meta(&mut self) -> T;
 
     async fn list(rb: &Rbatis, wr: Option<Wrapper>) -> Option<Vec<T>> {
         match wr {
@@ -46,7 +50,7 @@ pub trait BaseModel<T: CRUDTable + for<'de> Deserialize<'de>> {
         unwrap(rb.fetch_by_wrapper(wr).await)
     }
 
-    async fn update(&self, rb: &Rbatis, wr: Option<Wrapper>) -> Option<u64> {
+    async fn update(&mut self, rb: &Rbatis, wr: Option<Wrapper>) -> Option<u64> {
         let mut bean = self.meta();
         match wr {
             Some(wrapper) => unwrap(rb.update_by_wrapper(&mut bean, wrapper, &[]).await),
@@ -61,7 +65,7 @@ pub trait BaseModel<T: CRUDTable + for<'de> Deserialize<'de>> {
         }
     }
 
-    async fn save(&self, rb: &Rbatis) -> Option<u64> {
+    async fn save(&mut self, rb: &Rbatis) -> Option<u64> {
         let bean = self.meta();
         match rb.save(&bean, &[]).await {
             Ok(result) => {

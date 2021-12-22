@@ -5,39 +5,40 @@ import ElementUI from 'element-ui';
 import '@/assets/style/theme/index.css'
 import Swal from 'sweetalert2'
 import App from "./App.vue";
+import mixin from './mixin'
 import MyPagination from "@/components/pagination";
 import MyDialog from '@/components/MyDialog'
 import Treeselect from '@riophae/vue-treeselect'
 import '@riophae/vue-treeselect/dist/vue-treeselect.css'
 import config from '@/libs/config'
-
-// import { listen } from "@tauri-apps/api/event";
-// import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/tauri";
 
 Vue.use(ElementUI);
 Vue.component('Treeselect', Treeselect)
 Vue.component('myPagination', MyPagination)
 Vue.component('myDialog', MyDialog)
+Vue.mixin(mixin)
 Vue.config.productionTip = false;
 Vue.prototype.config = config
 
-// listen("error", (event) => {
-//     alert(event.payload);
-// });
+listen("error", (event) => {
+    alert(event.payload);
+});
 
-// let callback = {}
+let callback = {}
 
-// Vue.prototype.invoke = (method, cb, param) => {
-//     callback[method] = cb
-//     return invoke("exec", {
-//         params: { method, param },
-//     });
-// };
-// listen('response', (event) => {
-//     let data = JSON.parse(event.payload);
-//     callback[data.method](data);
-//     delete callback[data.method]
-// })
+Vue.prototype.invoke = (method, cb, param) => {
+    callback[method] = cb
+    return invoke("exec", {
+        params: { method, param },
+    });
+};
+listen('response', (event) => {
+    let data = JSON.parse(event.payload);
+    callback[data.method](data.data);
+    delete callback[data.method]
+})
 
 const Toast = Swal.mixin({
     toast: true,
@@ -66,14 +67,18 @@ Vue.prototype.error = (msg) => {
 }
 
 Vue.prototype.confirm = (msg) => {
-    return Swal.fire({
-        title: msg ? msg : '确定要删除该信息?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        cancelButtonText: '取消',
-        confirmButtonText: '确认!'
+    return new Promise((resolve, reject) => {
+        Swal.fire({
+            title: msg ? msg : '确定要删除该信息?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: '取消',
+            confirmButtonText: '确认!'
+        }).then(result => {
+            resolve(result.isConfirmed)
+        })
     })
 }
 

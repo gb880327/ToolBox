@@ -100,12 +100,16 @@ pub fn exec(win: Window, params: RequestParam) {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum MethodEvent {
     ProjectList,
+    SaveProject,
+    RemoveProject,
     DeployProject,
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
     match params.method {
-        MethodEvent::ProjectList => unwrap(params.method, service::projects()),
+        MethodEvent::ProjectList => unwrap(params.method, service::projects(params.param)),
+        MethodEvent::SaveProject => unwrap(params.method, service::save_project(params.param)),
+        MethodEvent::RemoveProject => unwrap(params.method, service::remove_project(params.param)),
         MethodEvent::DeployProject => unwrap(params.method, service::deploy_projects(params.param.clone()))
     }
 }

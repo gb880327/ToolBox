@@ -33,7 +33,9 @@
                     <el-input v-model="form.name" size="small" placeholder="请输入项目名称"></el-input>
                 </el-form-item>
                 <el-form-item label="项目路径：" prop="path">
-                    <el-input v-model="form.path" size="small" placeholder="请输入项目路径"></el-input>
+                    <el-input v-model="form.path" size="small" placeholder="请输入项目路径">
+                        <el-button slot="suffix" size="mini" type="primary" plain @click="chooseHandler">选择</el-button>
+                    </el-input>
                 </el-form-item>
             </el-form>
         </myDialog>
@@ -53,9 +55,9 @@ export default {
             total: 0,
             pageNum: 0,
             pageSize: 10,
-            data: [{id: 1, name: 'test', path: 'test'}],
+            data: [],
             form: {
-                id: '',
+                id: -1,
                 name: '',
                 path: ''
             },
@@ -65,7 +67,21 @@ export default {
             }
         }
     },
+    created(){
+        this.list()
+    },
     methods: {
+        chooseHandler(){
+            this.chooseDir().then(rep=> {
+                this.form.path = rep
+            })
+        },
+        list(){
+            this.invoke('ProjectList', (data)=> {
+                this.data = data.records
+                this.total = data.total
+            }, {pageNum: this.pageNum, pageSize: this.pageSize})
+        },
         add(){
             this.title = '新增项目'
             this.$refs.dialog.show()
@@ -77,16 +93,20 @@ export default {
         ok(){
             this.$refs.projectForm.validate(valid=> {
                 if(valid){
-                    this.data.push(JSON.parse(JSON.stringify(this.form)))
-                    this.$refs.dialog.close()
-                    this.cancel()
+                    this.invoke('SaveProject', (data)=>{
+                        this.success('保存成功！')
+                        this.list()
+                        this.$refs.dialog.close()
+                        this.cancel()
+                    }, this.form)
                 }
             })
         },
         cancel(){
             this.form = {
-                id: '',
-                name: ''
+                id: -1,
+                name: '',
+                path: ''
             }
             this.$refs.projectForm.resetFields()
         },
@@ -96,10 +116,13 @@ export default {
             this.$refs.dialog.show()
         },
         remove(row){
-            this.confirm("确认删除此数据！").then(()=>{
-                
-            }).catch(err=>{
-
+            this.confirm("确认删除此数据！").then((result)=>{
+                if(result){
+                    this.invoke('RemoveProject', (data)=>{
+                        this.success('删除成功！')
+                        this.list()
+                    }, {id: row.id})
+                }
             })
         }
     }
