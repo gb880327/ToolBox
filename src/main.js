@@ -22,10 +22,6 @@ Vue.mixin(mixin)
 Vue.config.productionTip = false;
 Vue.prototype.config = config
 
-listen("error", (event) => {
-    alert(event.payload);
-});
-
 let callback = {}
 
 Vue.prototype.invoke = (method, cb, param) => {
@@ -87,6 +83,7 @@ Vue.prototype.Swal = Swal
 Vue.prototype.goto = (page, params) => {
     router.push({ path: page, query: params })
 }
+
 
 new Vue({
     render: (h) => h(App),

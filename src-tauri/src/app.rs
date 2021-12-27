@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::ops::Add;
 use std::path::Path;
 use std::sync::mpsc;
@@ -8,11 +7,10 @@ use anyhow::{anyhow, Result};
 use dirs::config_dir;
 use rbatis::rbatis::Rbatis;
 use rust_embed::RustEmbed;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use tauri::Window;
 
 use crate::database;
-use crate::service;
 
 #[derive(RustEmbed)]
 #[folder = "assets"]
@@ -29,7 +27,7 @@ pub struct ResponseMsg<T> {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RequestParam {
     pub method: MethodEvent,
-    pub param: Option<HashMap<String, Value>>,
+    pub param: Option<Map<String, Value>>,
 }
 
 fn get_db_path() -> Result<String> {
@@ -102,14 +100,25 @@ pub enum MethodEvent {
     ProjectList,
     SaveProject,
     RemoveProject,
-    DeployProject,
+    Servers,
+    SaveServer,
+    RemoveServer,
+    DeploySetting,
+    SaveDeploySetting,
+    Deploy,
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
+    super::SERVICE.lock().unwrap().set_param(params.param);
     match params.method {
-        MethodEvent::ProjectList => unwrap(params.method, service::projects(params.param)),
-        MethodEvent::SaveProject => unwrap(params.method, service::save_project(params.param)),
-        MethodEvent::RemoveProject => unwrap(params.method, service::remove_project(params.param)),
-        MethodEvent::DeployProject => unwrap(params.method, service::deploy_projects(params.param.clone()))
+        MethodEvent::ProjectList => unwrap(params.method, super::SERVICE.lock().unwrap().projects()),
+        MethodEvent::SaveProject => unwrap(params.method, super::SERVICE.lock().unwrap().save_project()),
+        MethodEvent::RemoveProject => unwrap(params.method, super::SERVICE.lock().unwrap().remove_project()),
+        MethodEvent::Servers => unwrap(params.method, super::SERVICE.lock().unwrap().servers()),
+        MethodEvent::SaveServer => unwrap(params.method, super::SERVICE.lock().unwrap().save_server()),
+        MethodEvent::RemoveServer => unwrap(params.method, super::SERVICE.lock().unwrap().remove_server()),
+        MethodEvent::DeploySetting => unwrap(params.method, super::SERVICE.lock().unwrap().deploy_setting()),
+        MethodEvent::SaveDeploySetting => unwrap(params.method, super::SERVICE.lock().unwrap().save_deploy_setting()),
+        MethodEvent::Deploy => unwrap(params.method, super::SERVICE.lock().unwrap().deploy_project())
     }
 }

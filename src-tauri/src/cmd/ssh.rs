@@ -1,6 +1,7 @@
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::net::TcpStream;
+use std::ops::Div;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -10,12 +11,16 @@ use super::status;
 
 #[derive(Clone)]
 pub struct SshUtil {
-    pub session: Session,
+    pub session: Option<Session>,
     pub win: Window,
 }
 
 impl SshUtil {
-    pub fn new(win: Window, host: String, port: i64) -> Result<SshUtil> {
+    pub fn new(win: Window) -> SshUtil {
+        SshUtil { session: None, win }
+    }
+
+    pub fn connect(&mut self, host: String, port: i64) -> Result<()> {
         let mut session = Session::new()?;
         let mut server = String::from(host);
         server.push(':');
@@ -26,7 +31,8 @@ impl SshUtil {
                 session.set_compress(true);
                 session.set_timeout(30000);
                 session.handshake()?;
-                Ok(SshUtil { session, win })
+                self.session = Some(session);
+                Ok(())
             }
             Err(err) => Err(anyhow!(err.to_string()))
         }
@@ -37,16 +43,16 @@ impl SshUtil {
     }
 
     pub fn login_with_pwd(&mut self, name: String, password: String) -> Result<()> {
-        Ok(self.session.userauth_password(&name, &password)?)
+        Ok(self.session.as_ref().unwrap().userauth_password(&name, &password)?)
     }
 
     pub fn login_with_pubkey(&mut self, name: String, private_key: &Path) -> Result<()> {
-        Ok(self.session.userauth_pubkey_file(&name, None, private_key, None)?)
+        Ok(self.session.as_ref().unwrap().userauth_pubkey_file(&name, None, private_key, None)?)
     }
 
     pub fn exec(&mut self, cmd: String) -> Result<()> {
         self.console(format!("执行命令：{}", cmd));
-        let mut channel = self.session.channel_session()?;
+        let mut channel = self.session.as_ref().unwrap().channel_session()?;
         channel.exec(&cmd)?;
         let mut result = String::new();
         channel.read_to_string(&mut result)?;
@@ -66,7 +72,7 @@ impl SshUtil {
         self.console("开始文件上传！".into());
         let mut fs = File::open(file_path)?;
         let len = fs.metadata()?.len();
-        let remote_file = self.session.scp_send(remote_path, 0o644, len.clone(), None);
+        let remote_file = self.session.as_ref().unwrap().scp_send(remote_path, 0o644, len.clone(), None);
         match remote_file {
             Err(e) => Err(anyhow!(e.to_string())),
             _ => {
@@ -80,6 +86,7 @@ impl SshUtil {
                 while pos < len {
                     pos = pos + fs.read(&mut buf.as_mut_slice())? as u64;
                     remote_file.write_all(&buf.as_slice())?;
+                    self.win.emit("console_progress", (pos as f64 * 100.0) / len as f64).unwrap();
                 }
                 self.console("文件上传完成!".into());
                 remote_file.send_eof()?;
@@ -93,7 +100,7 @@ impl SshUtil {
 
     pub fn download_sftp(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
         self.console("开始下载文件！".into());
-        let sftp = self.session.sftp()?;
+        let sftp = self.session.as_ref().unwrap().sftp()?;
         let capacity = 1024 * 1024;
         let fs = sftp.open(remote_path)?;
 
@@ -105,7 +112,7 @@ impl SshUtil {
     }
 
     pub fn is_dir(&mut self, path: &Path) -> Result<bool> {
-        match self.session.sftp() {
+        match self.session.as_ref().unwrap().sftp() {
             Ok(sftp) => {
                 let stat = sftp.stat(path)?;
                 Ok(stat.is_dir())
@@ -115,7 +122,7 @@ impl SshUtil {
     }
 
     pub fn check_dir(&mut self, path: &Path) -> Result<()> {
-        match self.session.sftp() {
+        match self.session.as_ref().unwrap().sftp() {
             Ok(sftp) => {
                 match sftp.stat(path) {
                     Err(_e) => {

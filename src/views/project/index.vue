@@ -57,7 +57,6 @@ export default {
             pageSize: 10,
             data: [],
             form: {
-                id: -1,
                 name: '',
                 path: ''
             },
@@ -89,6 +88,7 @@ export default {
         pageChange(pageNum, pageSize){
             this.pageNum = pageNum;
             this.pageSize = pageSize;
+            this.list()
         },
         ok(){
             this.$refs.projectForm.validate(valid=> {
@@ -98,13 +98,12 @@ export default {
                         this.list()
                         this.$refs.dialog.close()
                         this.cancel()
-                    }, this.form)
+                    }, {project: this.form})
                 }
             })
         },
         cancel(){
             this.form = {
-                id: -1,
                 name: '',
                 path: ''
             }

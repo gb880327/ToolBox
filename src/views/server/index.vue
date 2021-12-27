@@ -13,7 +13,7 @@
                 <template slot-scope="scope">
                     <el-tooltip class="item" effect="dark" placement="top">
                         <template slot="content">
-                            <span v-if="scope.row.password">密码：{{scope.row.password}}</span>
+                            <span v-if="scope.row.auth_type == 0">密码：{{scope.row.password}}</span>
                             <span v-else>秘钥：{{scope.row.private_key}}</span>
                         </template>
                         <i class="el-icon-see"></i>
@@ -38,22 +38,24 @@
                     <el-input v-model="form.host"></el-input>
                 </el-form-item>
                 <el-form-item label="服务器端口：" prop="port">
-                    <el-input v-model="form.port" type="number"></el-input>
+                    <el-input-number v-model="form.port"></el-input-number>
                 </el-form-item>
                 <el-form-item label="用户名：" prop="user">
                     <el-input v-model="form.user"></el-input>
                 </el-form-item>
                 <el-form-item label="认证类型：">
-                    <el-select v-model="authType" @change="authChange">
-                        <el-option value="0" label="密码"></el-option>
-                        <el-option value="1" label="秘钥登陆"></el-option>
+                    <el-select v-model="form.auth_type" @change="authChange">
+                        <el-option :value="0" label="密码"></el-option>
+                        <el-option :value="1" label="秘钥登陆"></el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item ref="password" label="密码：" v-if="authType === '0'" prop="password">
+                <el-form-item ref="password" label="密码：" v-if="form.auth_type === 0" prop="password">
                     <el-input type="password" v-model="form.password" :show-password="true"></el-input>
                 </el-form-item>
-                <el-form-item ref="privateKey" label="秘钥路径：" v-if="authType === '1'" prop="private_key">
-                    <el-input v-model="form.private_key"></el-input>
+                <el-form-item ref="privateKey" label="秘钥路径：" v-if="form.auth_type === 1" prop="private_key">
+                    <el-input v-model="form.private_key">
+                         <el-button slot="suffix" size="mini" type="primary" plain @click="chooseHandler">选择</el-button>
+                    </el-input>
                 </el-form-item>
             </el-form>
         </myDialog>
@@ -67,17 +69,16 @@ export default {
             total: 0,
             pageNum: 0,
             pageSize: 10,
-            data: [{name: 'test', host: '127.0.0.1', port: 22, user: 'root', password: '11111'}],
+            data: [],
             total: 0,
-            authType:'0',
             form: {
-                id: 0,
                 name: "",
                 host: "",
                 port: 22,
                 user: "",
                 password: "",
-                private_key: ""
+                private_key: "",
+                auth_type: 0
             },
             rules: {
                 name: [{ required: true, message: "请输入服务器名称", trigger: "blur" }],
@@ -88,7 +89,21 @@ export default {
             }
         }
     },
+    created(){
+        this.list()
+    },
     methods: {
+        chooseHandler(){
+            this.chooseFile().then(rep=> {
+                this.form.private_key = rep
+            })
+        },
+        list(){
+            this.invoke('Servers', (data)=>{
+                this.data = data.records
+                this.total = data.total
+            } , {pageNum: this.pageNum, pageSize: this.pageSize})
+        },
         add(){
             this.title = '新增服务器'
             this.$refs.dialog.show()
@@ -96,44 +111,45 @@ export default {
         pageChange(pageNum, pageSize){
             this.pageNum = pageNum;
             this.pageSize = pageSize;
+            this.list()
         },
         authChange(){
-            this.form.password = "";
-            this.form.private_key = "";
-            this.form.identity_file = "";
             delete this.rules.private_key;
             delete this.rules.password;
-            delete this.rules.identity_file;
             if (this.$refs.password) {
                 this.$refs["password"].resetField();
             }
             if (this.$refs.privateKey) {
                 this.$refs["privateKey"].resetField();
             }
-            if (this.authType == 0) {
-                this.rules["password"] = [
-                { required: true, message: "请输入密码", trigger: "blur" },
-                ];
-            } else if (this.authType == 1) {
-                this.rules["private_key"] = [
-                { required: true, message: "请输入秘钥路径", trigger: "blur" },
-                ];
+            if (this.form.auth_type == 0) {
+                this.rules["password"] = [{ required: true, message: "请输入密码", trigger: "blur" }];
+            } else if (this.form.auth_type == 1) {
+                this.rules["private_key"] = [{ required: true, message: "请输入秘钥路径", trigger: "blur" }];
             }
         },
         ok(){
-            this.$refs.dialog.close()
-            this.cancel()
+            this.$refs.serverForm.validate(valid=> {
+                if(valid){
+                    this.invoke('SaveServer', (rep)=>{
+                        this.success('保存成功！')
+                        this.list()
+                        this.$refs.dialog.close()
+                        this.cancel()
+                    }, { server: this.form })
+                }
+            })
         },
         cancel(){
             this.authType = '0'
             this.form = {
-                id: 0,
                 name: "",
                 host: "",
                 port: 22,
                 user: "",
                 password: "",
-                private_key: ""
+                private_key: "",
+                auth_type: 0
             }
             this.$refs.serverForm.resetFields()
         },
@@ -143,10 +159,13 @@ export default {
             this.$refs.dialog.show()
         },
         remove(row){
-            this.confirm("确认删除此数据！").then(()=>{
-                
-            }).catch(err=>{
-
+            this.confirm("确认删除此数据！").then((result)=>{
+                if(result) {
+                    this.invoke('RemoveServer', (data)=>{
+                        this.success('删除成功！')
+                        this.list()
+                    }, {id: row.id})
+                }
             })
         }
     }

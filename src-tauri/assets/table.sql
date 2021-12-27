@@ -35,7 +35,8 @@ CREATE TABLE "command" (
   "profile" TEXT,
   "remote_dir" TEXT,
   "before" TEXT,
-  "after" TEXT
+  "after" TEXT,
+  "target_name" TEXT
 );
 
 -- ----------------------------
@@ -52,17 +53,6 @@ CREATE TABLE "datasource" (
   "prefix" TEXT(20),
   "user" TEXT(20),
   "password" TEXT(20)
-);
-
--- ----------------------------
--- Table structure for deploy_project
--- ----------------------------
-DROP TABLE IF EXISTS "deploy_project";
-CREATE TABLE "deploy_project" (
-  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "project_id" INTEGER,
-  "source_dir" TEXT,
-  "target_name" TEXT
 );
 
 -- ----------------------------
@@ -99,7 +89,8 @@ CREATE TABLE "server" (
   "port" INTEGER(32),
   "user" TEXT(120),
   "password" TEXT(120),
-  "private_key" TEXT(500)
+  "private_key" TEXT(500),
+  "auth_type" INTEGER(32)
 );
 
 -- ----------------------------

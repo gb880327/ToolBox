@@ -9,12 +9,14 @@
         </el-submenu>
       </template>
     </el-menu>
-    <router-view class="router"></router-view>
+    <keep-alive>
+      <router-view class="router"></router-view>
+    </keep-alive>
   </div>
 </template>
 
 <script>
-
+import { listen } from "@tauri-apps/api/event";
 export default {
   name: 'App',
   data() {
@@ -25,10 +27,52 @@ export default {
           { path: '/deploy', title: '项目部署', subItems: [ { path: '/deploy', title: '项目部署' }, { path: '/server', title: '服务器管理' } ] },
           { path: '/codegen', title: '代码生成', subItems: [ { path: '/codegen', title: '代码生成' }, { path: '/datasource', title: '数据源管理' }, { path: '/template', title: '模板管理' } ] }
         ],
-        titleMap: {'/deploy': '项目部署', '/codegen': '代码生成'}
+        titleMap: {'/deploy': '项目部署', '/codegen': '代码生成'},
+        logs: [],
+        showProgress: false,
+        percentage: 0,
+        isDeploy: false
       }
   },
   created(){
+    listen("error", (event) => {
+        this.error(event.payload)
+    });
+    listen("console", (event) => {
+      if(event.payload === 'over') {
+        this.isDeploy = false
+        return
+      } 
+      this.logs.push({msg: event.payload, type: 0})
+      this.$nextTick(()=> {
+        this.goToEnd()
+      })
+    })
+    listen('console_error', (event)=>{
+      this.logs.push({msg: event.payload, type: 1})
+      this.$nextTick(()=> {
+        this.goToEnd()
+      })
+    })
+    listen('console_progress', (event)=> {
+      if(!this.showProgress){
+        this.showProgress = true
+      }
+      this.percentage = parseInt(event.payload)
+      if(this.percentage >= 100){
+        this.percentage = 0
+        this.showProgress = false
+      }
+      this.$nextTick(()=> {
+        this.goToEnd()
+      })
+    })
+    this.$router.beforeEach((to, from, next)=> {
+      if(this.isDeploy){
+        return
+      }
+      next()
+    })
     this.$router.afterEach((to, _from) => {
       this.activeIndex = to.path
       this.titleMap[to.meta.key] = to.meta.title
@@ -39,6 +83,12 @@ export default {
       })
     })
   },
+  methods: {
+    goToEnd(){
+      let div = document.getElementsByClassName('console')[0]
+      div.scrollTop = div.scrollHeight + 20
+    }
+  }
 }
 </script>
 

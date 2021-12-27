@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use rbatis::crud::{CRUD, CRUDTable};
 use rbatis::{DriverType, Error};
+use rbatis::crud::{CRUD, CRUDTable};
 use rbatis::executor::Executor;
 use rbatis::plugin::page::{Page, PageRequest};
 use rbatis::rbatis::Rbatis;
@@ -15,6 +15,30 @@ pub async fn exec_sql(rb: &Rbatis, sql: &str, args: Option<Vec<Value>>) -> Resul
         None => rb.exec(sql, vec![]).await?
     };
     Ok(result.rows_affected)
+}
+
+pub async fn save<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T) -> Option<u64> {
+    match rb.save(bean, &[]).await {
+        Ok(result) => {
+            if result.rows_affected > 0 {
+                Some(result.last_insert_id.unwrap() as u64)
+            } else {
+                Some(0)
+            }
+        }
+        Err(_err) => Some(0)
+    }
+}
+
+pub async fn update<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T) -> Option<u64> {
+    unwrap(rb.update_by_wrapper(bean, rb.new_wrapper(), &[]).await)
+}
+
+pub async fn save_or_update<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T, id: Option<i64>) -> Option<u64> {
+    match id {
+        Some(_i) => update(rb, bean).await,
+        None => save(rb, bean).await
+    }
 }
 
 pub fn new_wrapper() -> Wrapper {

@@ -4,16 +4,16 @@
             <el-tab-pane v-for="(item,i) of commands" :key="item.profile" :name="item.profile" :label="item.profile">
                 <el-form>
                     <el-form-item label="部署路径：(remote_dir)" prop="remote_dir">
-                        <el-input v-model="item.remote_dir" size="small"></el-input>
+                        <el-input v-model="item.remote_dir" size="small" autocomplete=”off”></el-input>
                     </el-form-item>
                     <el-form-item label="部署文件名称：(target_name)" prop="target_name">
-                        <el-input v-model="item.target_name" size="small"></el-input>
+                        <el-input v-model="item.target_name" size="small" autocomplete=”off”></el-input>
                     </el-form-item>
                     <el-form-item label="部署前命令：" prop="before">
-                        <el-input v-model="item.before" type="textarea" :rows="6" placeholder="文件上传前执行命令，如项目编译、打包等！"></el-input>
+                        <el-input v-model="item.before" type="textarea" :rows="6" placeholder="文件上传前执行命令，如项目编译、打包等！" autocomplete=”off”></el-input>
                     </el-form-item>
                     <el-form-item label="部署后命令：" prop="after">
-                        <el-input v-model="item.after" type="textarea" :rows="6" placeholder="文件上传后执行命令，文件解压、服务重启等！"></el-input>
+                        <el-input v-model="item.after" type="textarea" :rows="6" placeholder="文件上传后执行命令，文件解压、服务重启等！" autocomplete=”off”></el-input>
                     </el-form-item>
                 </el-form>
             </el-tab-pane>
@@ -21,22 +21,29 @@
     </myDialog>
 </template>
 <script>
+
 export default {
     name: 'deploySetting',
     data(){
         return {
-            profile: 'test',
-            commands: [{
-                profile: 'test',
-                remote_dir: '',
-                target_name: '',
-                before: '',
-                after: ''
-            }]
+            projectId: '',
+            profile: '',
+            commands: []
         }
     },
     methods: {
+        getData(){
+            this.invoke('DeploySetting', (rep)=>{
+                console.info(rep)
+                this.commands = rep ? rep : []
+                if(rep && rep.length > 0){
+                    this.profile = rep[0].profile
+                }
+            }, {id: this.projectId})
+        },
         show(id){
+            this.projectId = id
+            this.getData()
             this.$refs.dialog.show()
         },
         handleTabsEdit(targetName, action){
@@ -87,10 +94,24 @@ export default {
             }
         },
         ok(){
+            for(let item of this.commands) {
+                if(!item.remote_dir || !item.target_name || !item.before || !item.after){
+                    this.error(`配置 ${item.profile} 填写不完整！`)
+                    return
+                }
+                item.project_id = this.projectId
+            }
+            this.invoke('SaveDeploySetting', ()=>{
+                this.success('保存成功！')
+                this.cancel()
+                this.$refs.dialog.close()
+            }, {project_id: this.projectId, command: this.commands})
 
         }, 
         cancel(){
-
+            this.projectId = ''
+            this.profile = ''
+            this.commands = []
         }
     }
 }
