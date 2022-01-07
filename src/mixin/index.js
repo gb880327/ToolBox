@@ -2,18 +2,18 @@ import { open } from "@tauri-apps/api/dialog";
 
 const mixin = {
     methods: {
-        chooseDir: () => {
+        chooseDir: (dir) => {
             return new Promise((resole, reject) => {
-                open({ directory: true }).then(rep => {
+                open({ directory: true, defaultPath: dir }).then(rep => {
                     resole(rep)
                 }).catch(err => {
                     reject(err)
                 })
             })
         },
-        chooseFile: () => {
+        chooseFile: (dir) => {
             return new Promise((resole, reject) => {
-                open({ directory: false }).then(rep => {
+                open({ directory: false, defaultPath: dir }).then(rep => {
                     resole(rep)
                 }).catch(err => {
                     reject(err)

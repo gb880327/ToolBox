@@ -31,7 +31,8 @@ export default {
         logs: [],
         showProgress: false,
         percentage: 0,
-        isDeploy: false
+        isDeploy: false,
+        hasError: false
       }
   },
   created(){
@@ -49,6 +50,7 @@ export default {
       })
     })
     listen('console_error', (event)=>{
+      this.hasError = true
       this.logs.push({msg: event.payload, type: 1})
       this.$nextTick(()=> {
         this.goToEnd()

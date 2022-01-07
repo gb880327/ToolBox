@@ -1,4 +1,6 @@
-use rbatis::AsProxy;
+use std::ops::Add;
+
+use rbatis::{AsProxy, Error};
 use rbatis::crud::CRUD;
 use rbatis::plugin::page::{Page, PageRequest};
 use serde::Deserialize;
@@ -6,10 +8,11 @@ use serde_json::{Map, Value};
 use tauri::async_runtime::block_on;
 use tauri::Window;
 
-use crate::database::{BaseModel, new_wrapper, save_or_update};
+use crate::database::{BaseModel, new_wrapper, save_or_update, table_column, table_list};
 use crate::deploy::DeployUtil;
+use crate::gencode::{TemplateParam, TemplateRender};
 use crate::model::*;
-use crate::model::service::DeployInfo;
+use crate::model::service::{DeployInfo, GenData, GenInfo, TemplateInfo};
 
 pub trait Param {
     fn get_int(&self, key: &str) -> Option<i64>;
@@ -47,7 +50,7 @@ impl Param for Map<String, Value> {
 
 pub struct Service {
     pub win: Option<Window>,
-    pub param: Option<Map<String, Value>>
+    pub param: Option<Map<String, Value>>,
 }
 
 impl Service {
@@ -133,5 +136,177 @@ impl Service {
             }
         });
         Some(true)
+    }
+
+    pub fn datasources(&mut self) -> Option<Page<DataSource>> {
+        let page_request = self.param.as_ref()?.get_page_param()?;
+        block_on(DataSource::list_by_page(&super::RB, None, page_request))
+    }
+
+    pub fn save_datasource(&mut self) -> Option<bool> {
+        let ds: DataSource = self.param.as_ref()?.get_bean("ds")?;
+        Some(block_on(save_or_update(&super::RB, &ds, ds.id))? > 0)
+    }
+
+    pub fn remove_datasource(&mut self) -> Option<bool> {
+        let ds_id = self.param.as_ref()?.get_int("id")?;
+        Some(block_on(DataSource::remove(&super::RB, Some(new_wrapper().eq("id", ds_id))))? > 0)
+    }
+
+    pub fn categorys(&mut self) -> Option<Vec<Category>> {
+        Some(block_on(Category::list(&super::RB, None))?)
+    }
+
+    pub fn save_category(&mut self) -> Option<bool> {
+        let category: Category = self.param.as_ref()?.get_bean("category")?;
+        Some(block_on(save_or_update(&super::RB, &category, category.id))? > 0)
+    }
+
+    pub fn remove_category(&mut self) -> Option<bool> {
+        let id = self.param.as_ref()?.get_int("id")?;
+        Some(block_on(Category::remove(&super::RB, Some(new_wrapper().eq("id", id))))? > 0)
+    }
+
+    pub fn templates(&mut self) -> Option<Page<Template>> {
+        let category = self.param.as_ref()?.get_int("categoryId");
+        let page_request = self.param.as_ref()?.get_page_param()?;
+        let wrapper = match category {
+            Some(id) => Some(new_wrapper().eq("category_id", id)),
+            None => None
+        };
+        block_on(Template::list_by_page(&super::RB, wrapper, page_request))
+    }
+
+    pub fn save_template(&mut self) -> Option<bool> {
+        let template: Template = self.param.as_ref()?.get_bean("template")?;
+        Some(block_on(save_or_update(&super::RB, &template, template.id))? > 0)
+    }
+
+    pub fn remove_template(&mut self) -> Option<bool> {
+        let id = self.param.as_ref()?.get_int("templateId")?;
+        Some(block_on(Template::remove(&super::RB, Some(new_wrapper().eq("id", id))))? > 0)
+    }
+
+    pub fn gen_setting(&mut self) -> Option<GenProject> {
+        let project_id = self.param.as_ref()?.get_int("projectId")?;
+        let gen_project: Option<GenProject> = block_on(GenProject::one(&super::RB, new_wrapper().eq("project_id", project_id)));
+        gen_project
+    }
+
+    pub fn save_gen_setting(&mut self) -> Option<bool> {
+        let setting: GenProject = self.param.as_ref()?.get_bean("setting")?;
+        Some(block_on(save_or_update(&super::RB, &setting, setting.id))? > 0)
+    }
+
+    pub fn table_and_template(&mut self) -> Option<GenData> {
+        let project_id = self.param.as_ref()?.get_int("projectId")?;
+        let gen_project: GenProject = block_on(GenProject::one(&super::RB, new_wrapper().eq("project_id", project_id)))?;
+        let template_info: Vec<TemplateInfo> = match serde_json::from_str(&gen_project.template?) {
+            Ok(result) => result,
+            Err(_err) => vec![]
+        };
+        let db_id = gen_project.datasource.clone()?;
+        let db_info: DataSource = block_on(DataSource::one(&super::RB, new_wrapper().eq("id", db_id)))?;
+        block_on(super::MYSQL.link(&format!("mysql://{}:{}@{}:{}/{}", db_info.user?, db_info.password?, db_info.host?, db_info.port?, db_info.db_name.clone()?))).unwrap();
+        let table: Result<Vec<Table>, Error> = block_on(table_list(&db_info.db_name.clone()?));
+        match table {
+            Ok(t) => Some(GenData { table: t, template: template_info }),
+            Err(_err) => Some(GenData { table: vec![], template: template_info })
+        }
+    }
+
+    pub fn gen_template(&mut self) -> Option<bool> {
+        let gen_info: GenInfo = self.param.as_ref()?.get_bean("genInfo")?;
+        let gen_project: GenProject = block_on(GenProject::one(&super::RB, new_wrapper().eq("project_id", gen_info.project_id)))?;
+        let project: Project = block_on(Project::one(&super::RB, new_wrapper().eq("id", gen_info.project_id)))?;
+
+        let db_id = gen_project.datasource.clone()?;
+        let db_info: DataSource = block_on(DataSource::one(&super::RB, new_wrapper().eq("id", db_id)))?;
+        let prefix = db_info.prefix?;
+        let db_name = db_info.db_name?;
+
+        let mut tables = gen_info.tables;
+        for table in tables.iter_mut() {
+            table.name = Some(get_table_name(table.org_name.as_ref()?.clone(), prefix.clone()));
+
+            let column: Result<Vec<Column>, Error> = block_on(table_column(&db_name, &table.org_name.as_ref()?));
+            match column {
+                Ok(mut cols) => {
+                    for col in cols.iter_mut() {
+                        let field_type = col.data_type.as_ref()?.clone();
+                        col.field_type = Some(String::from_utf8(field_type.rb_bytes).unwrap());
+                        col.name = Some(get_column_name(col.field_name.as_ref()?.clone()));
+                    }
+                    table.column = Some(cols)
+                }
+                Err(err) => {
+                    println!("== {}", err.to_string());
+                    table.column = None
+                }
+            }
+        }
+        let templates = gen_info.templates;
+        let mut template_params: Vec<TemplateParam> = vec![];
+        for tpl in templates.iter() {
+            let tp: Template = block_on(Template::one(&super::RB, new_wrapper().eq("id", tpl.template_id)))?;
+            template_params.push(TemplateParam {
+                file_path: tpl.file_path.clone(),
+                file_name: tpl.file_name.clone(),
+                content: tp.content?,
+                lang: tp.language?,
+            });
+        }
+        let mut template_render = TemplateRender { table: tables, root_path: project.path?, output: gen_project.output?, templates: template_params };
+        match template_render.render(self.win.clone()?) {
+            Ok(()) => Some(true),
+            Err(_err) => Some(false)
+        }
+    }
+}
+
+/**
+ * 处理表名 驼峰命名规则
+ */
+fn get_table_name(name: String, prefix: String) -> String {
+    let mut table_name = name;
+    if !prefix.is_empty() {
+        table_name = table_name.replace(&prefix, "");
+    }
+    let strs = table_name.split("_");
+    let mut new_table_name = String::new();
+    for item in strs {
+        new_table_name = new_table_name.add(&*item.get_name())
+    }
+    new_table_name
+}
+
+fn get_column_name(col: String) -> String {
+    let col = col.replace(" ", "");
+    let strs: Vec<&str> = col.split("_").collect();
+    let mut new_name = String::new();
+    let mut index = 0;
+    for s in strs {
+        if index == 0 {
+            new_name = new_name.add(&s);
+        } else {
+            new_name = new_name.add(&*s.get_name());
+        }
+        index = index + 1;
+    }
+    new_name
+}
+
+
+trait TableName {
+    fn get_name(&self) -> String;
+}
+
+impl TableName for &str {
+    fn get_name(&self) -> String {
+        if !self.is_ascii() || self.is_empty() {
+            return String::from(*self);
+        }
+        let (head, tail) = self.split_at(1);
+        head.to_uppercase() + tail
     }
 }

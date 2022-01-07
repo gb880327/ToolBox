@@ -6,7 +6,11 @@
          <el-table :data="data">
             <el-table-column type="index" width="50" label="编号"></el-table-column>
             <el-table-column property="name" label="名称" align="center"></el-table-column>
-            <el-table-column property="db_type" label="类型" align="center"></el-table-column>
+            <el-table-column property="db_type" label="类型" align="center">
+                <span slot-scope="scope">
+                    {{config.dbType.find(it=> it.value === scope.row.db_type).label}}
+                </span>
+            </el-table-column>
             <el-table-column property="host" label="地址" align="center"></el-table-column>
             <el-table-column property="port" label="端口" align="center"></el-table-column>
             <el-table-column property="db_name" label="数据库" align="center"></el-table-column>
@@ -35,7 +39,7 @@
                  </el-form-item>
                  <el-form-item label="类型：" prop="db_type">
                      <el-select v-model="form.db_type" style="width: 100%;">
-                         <el-option v-for="(item, i) of dbType" :key="i" :label="item.label" :value="item.value"></el-option>
+                         <el-option v-for="(item, i) of config.dbType" :key="i" :label="item.label" :value="item.value"></el-option>
                      </el-select>
                  </el-form-item>
                  <el-form-item label="地址：" prop="host">
@@ -62,20 +66,15 @@
 </template>
 <script>
 
-export default {
+export default {  
     data(){
         return {
-            dbType: [{
-                label: 'MySQL',
-                value: 'mysql',
-            }],
-            data: [{id: 1,name: 'Test', db_type: 'mysql', host: '127.0.0.1', port: 3306, db_name: 'Test', prefix: '', user: 'root', password: '123456'}],
+            data: [],
             title: '',
             total: 0,
             pageNum: 0,
             pageSize: 10,
             form: {
-                id: 0,
                 name: '',
                 db_type: 'mysql',
                 host: '',
@@ -96,7 +95,16 @@ export default {
             }
         }
     },
+    created(){
+        this.list()
+    },
     methods: {
+        list(){
+            this.invoke('DataSources', (data)=>{
+                this.data = data.records
+                this.total = data.total
+            } , {pageNum: this.pageNum, pageSize: this.pageSize})
+        },
         add(){
             this.title = '新增数据源'
             this.$refs.dialog.show()
@@ -108,13 +116,17 @@ export default {
         ok(){
             this.$refs.dbForm.validate(valid=> {
                 if(valid){
-                    this.cancel()
+                    this.invoke('SaveDataSource', (rep)=>{
+                        this.success('保存成功！')
+                        this.list()
+                        this.$refs.dialog.close()
+                        this.cancel()
+                    }, { ds: this.form })
                 }
             })
         },
         cancel(){
             this.form = {
-                id: 0,
                 name: '',
                 db_type: 'mysql',
                 host: '',
@@ -132,10 +144,13 @@ export default {
             this.$refs.dialog.show()
         },
         remove(row){
-            this.$confirm("确认删除此数据！").then(()=>{
-                
-            }).catch(err=>{
-
+            this.$confirm("确认删除此数据！").then((result)=>{
+                if(result) {
+                    this.invoke('RemoveDataSource', (data)=>{
+                        this.success('删除成功！')
+                        this.list()
+                    }, {id: row.id})
+                }
             })
         }
     }

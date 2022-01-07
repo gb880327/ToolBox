@@ -47,7 +47,7 @@ let routes = [{
     {
         path: "/template",
         name: "template",
-        component: (resolve) => require(["@/views/codegen/template.vue"], resolve),
+        component: (resolve) => require(["@/views/codegen/templates.vue"], resolve),
         meta: {
             key: '/codegen',
             title: '模板管理'

@@ -106,6 +106,19 @@ pub enum MethodEvent {
     DeploySetting,
     SaveDeploySetting,
     Deploy,
+    DataSources,
+    SaveDataSource,
+    RemoveDataSource,
+    Categorys,
+    SaveCategory,
+    RemoveCategory,
+    Templates,
+    SaveTemplate,
+    RemoveTemplate,
+    GenSetting,
+    SaveGenSetting,
+    TableAndTemplate,
+    GenTemplate
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
@@ -119,6 +132,19 @@ fn exec_method(params: RequestParam) -> Result<String> {
         MethodEvent::RemoveServer => unwrap(params.method, super::SERVICE.lock().unwrap().remove_server()),
         MethodEvent::DeploySetting => unwrap(params.method, super::SERVICE.lock().unwrap().deploy_setting()),
         MethodEvent::SaveDeploySetting => unwrap(params.method, super::SERVICE.lock().unwrap().save_deploy_setting()),
-        MethodEvent::Deploy => unwrap(params.method, super::SERVICE.lock().unwrap().deploy_project())
+        MethodEvent::Deploy => unwrap(params.method, super::SERVICE.lock().unwrap().deploy_project()),
+        MethodEvent::DataSources => unwrap(params.method, super::SERVICE.lock().unwrap().datasources()),
+        MethodEvent::SaveDataSource => unwrap(params.method, super::SERVICE.lock().unwrap().save_datasource()),
+        MethodEvent::RemoveDataSource => unwrap(params.method, super::SERVICE.lock().unwrap().remove_datasource()),
+        MethodEvent::Categorys => unwrap(params.method, super::SERVICE.lock().unwrap().categorys()),
+        MethodEvent::SaveCategory => unwrap(params.method, super::SERVICE.lock().unwrap().save_category()),
+        MethodEvent::RemoveCategory => unwrap(params.method, super::SERVICE.lock().unwrap().remove_category()),
+        MethodEvent::Templates => unwrap(params.method, super::SERVICE.lock().unwrap().templates()),
+        MethodEvent::SaveTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().save_template()),
+        MethodEvent::RemoveTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().remove_template()),
+        MethodEvent::GenSetting => unwrap(params.method, super::SERVICE.lock().unwrap().gen_setting()),
+        MethodEvent::SaveGenSetting => unwrap(params.method, super::SERVICE.lock().unwrap().save_gen_setting()),
+        MethodEvent::TableAndTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().table_and_template()),
+        MethodEvent::GenTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().gen_template())
     }
 }

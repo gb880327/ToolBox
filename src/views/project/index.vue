@@ -15,7 +15,7 @@
             </el-table-column>
             <el-table-column label="代码生成设置" align="center">
                 <template slot-scope="scope">
-                    <el-button type="success" icon="el-icon-setting" size="mini" circle @click="$refs.codegenSetting.show(scope.row.id)"></el-button>
+                    <el-button type="success" icon="el-icon-setting" size="mini" circle @click="$refs.codegenSetting.show(scope.row.id, scope.row.path)"></el-button>
                     <el-button type="primary" size="mini" circle @click="goto('/codegen', {id: scope.row.id})"><i class="el-icon-generated"></i></el-button>
                 </template>
             </el-table-column>

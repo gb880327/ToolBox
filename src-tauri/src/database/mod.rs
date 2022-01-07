@@ -9,6 +9,14 @@ use rbatis::wrapper::Wrapper;
 use serde::Deserialize;
 use serde_json::Value;
 
+use crate::model::{Column, Table};
+
+#[sql(super::MYSQL, "select table_name as org_name, table_comment as comment from information_schema.tables where table_schema = ?")]
+pub async fn table_list(db: &str) -> Vec<Table> { todo!() }
+
+#[sql(super::MYSQL, "select column_name as field_name, data_type as data_type, column_key as `key`, column_comment as comment from information_schema.columns where table_schema = ? and table_name = ?")]
+pub async fn table_column(db_name: &str, table: &str) -> Vec<Column> { todo!() }
+
 pub async fn exec_sql(rb: &Rbatis, sql: &str, args: Option<Vec<Value>>) -> Result<u64, Error> {
     let result = match args {
         Some(arg) => rb.exec(sql, arg).await?,

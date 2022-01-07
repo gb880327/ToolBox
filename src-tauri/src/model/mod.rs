@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::database::BaseModel;
+
 pub(crate) mod service;
 
 
@@ -48,7 +49,7 @@ pub struct Server {
     pub user: Option<String>,
     pub password: Option<String>,
     pub private_key: Option<String>,
-    pub auth_type: Option<i64>
+    pub auth_type: Option<i64>,
 }
 
 #[async_trait]
@@ -100,7 +101,6 @@ pub struct GenProject {
     pub id: Option<i64>,
     pub project_id: Option<i64>,
     pub datasource: Option<i64>,
-    pub root_path: Option<String>,
     pub output: Option<String>,
     pub template: Option<String>,
     pub type_mapping: Option<String>,
@@ -128,4 +128,22 @@ impl BaseModel<Template> for Template {
     fn meta(&mut self) -> Template {
         self.clone()
     }
+}
+
+#[derive(CRUDTable, Debug, Clone, Deserialize, Serialize)]
+pub struct Table {
+    pub name: Option<String>,
+    pub org_name: Option<String>,
+    pub comment: Option<String>,
+    pub column: Option<Vec<Column>>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Column {
+    pub name: Option<String>,
+    pub field_name: Option<String>,
+    pub data_type: Option<rbatis::core::types::byte::RbBytes>,
+    pub field_type: Option<String>,
+    pub key: Option<String>,
+    pub comment: Option<String>,
 }

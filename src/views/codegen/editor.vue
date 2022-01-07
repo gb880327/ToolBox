@@ -56,19 +56,20 @@ export default {
         return {
             aceEditor: {},
             form: {
-                id: '',
                 name: '',
+                category_id: '',
                 language: '',
                 content: ''
             }
         }
     },
     methods: {
-        show(row){
+        show(category, row){
             this.$refs.dialog.show()
             if(row){
                 this.form = JSON.parse(JSON.stringify(row))
             }
+            this.form.category_id = category
             this.init()
         },
         init(){
@@ -85,13 +86,31 @@ export default {
                 this.aceEditor.on('change', (data)=> {
                     this.form.content = this.aceEditor.getValue()
                 })
+                this.langChange(this.form.language)
             })
         },
         langChange(value){
             this.aceEditor.session.setMode("ace/mode/" + value)
         },
         ok(){
-
+            if(!this.form.name){
+                this.error('请填写模板名称！')
+                return
+            }
+            if(!this.form.language){
+                this.error('请选择模板语言！')
+                return
+            }
+            if(!this.form.content){
+                this.error('请填写模板内容！')
+                return
+            }
+            this.invoke('SaveTemplate', (data)=> {
+                this.success('保存成功！')
+                this.cancel()
+                this.$emit('update', this.form.category_id)
+                this.$refs.dialog.close()
+            }, {template: this.form})
         },
         cancel(){
             this.aceEditor.setValue('', -1)
@@ -105,7 +124,7 @@ export default {
 <style scoped>
 .editor {
   overflow-y: scroll;
-  height: 650px;
+  height: 500px;
 }
 .help-icon {
     font-size: 22px;
@@ -136,7 +155,7 @@ export default {
   margin: 0;
 }
 .helpTips a{
-  color: #FFFFFF;
+  color: black;
 }
 .helpTips .sub{
   margin-left:12px;
