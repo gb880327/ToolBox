@@ -93,11 +93,13 @@ export default {
             this.projectPath = path
             this.projectId = id
             this.invoke('GenSetting', (data)=> {
-                this.form.id = data.id
-                this.form.project_id = data.project_id
-                this.form.datasource = data.datasource
-                this.form.output = data.output
-                this.form.template = JSON.parse(data.template)
+                if(data){
+                    this.form.id = data.id
+                    this.form.project_id = data.project_id
+                    this.form.datasource = data.datasource
+                    this.form.output = data.output
+                    this.form.template = JSON.parse(data.template)
+                }
                 this.$refs.dialog.show()
             }, {projectId: this.projectId})
         },

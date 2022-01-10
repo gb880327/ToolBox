@@ -68,7 +68,8 @@ impl Service {
 
     pub fn projects(&mut self) -> Option<Page<Project>> {
         let page_request = self.param.as_ref()?.get_page_param()?;
-        block_on(Project::list_by_page(&super::RB, None, page_request))
+        let data: Page<Project> = block_on(super::RB.fetch_page_by_wrapper(new_wrapper(), &page_request)).unwrap();
+        Some(data)
     }
 
     pub fn save_project(&mut self) -> Option<bool> {

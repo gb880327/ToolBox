@@ -34,7 +34,6 @@ export default {
     methods: {
         getData(){
             this.invoke('DeploySetting', (rep)=>{
-                console.info(rep)
                 this.commands = rep ? rep : []
                 if(rep && rep.length > 0){
                     this.profile = rep[0].profile
