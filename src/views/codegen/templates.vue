@@ -152,7 +152,7 @@ export default {
                     this.invoke('RemoveTemplate', (data)=>{
                         this.success('删除成功！')
                         this.getTemplates(this.current)
-                    }, {id: row.id})
+                    }, {templateId: row.id})
                 }
             }).catch(err=>{})
         },

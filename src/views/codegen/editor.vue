@@ -107,16 +107,14 @@ export default {
             }
             this.invoke('SaveTemplate', (data)=> {
                 this.success('保存成功！')
-                this.cancel()
                 this.$emit('update', this.form.category_id)
+                this.cancel()
                 this.$refs.dialog.close()
             }, {template: this.form})
         },
         cancel(){
             this.aceEditor.setValue('', -1)
-            this.form = {
-                id: '', name: '', language: '', content: ''
-            }
+            this.form = { name: '', category_id: '', language: '', content: '' }
         }
     }
 }
