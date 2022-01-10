@@ -29,6 +29,11 @@ lazy_static! {
     static ref SERVICE: Mutex<Service> = Mutex::new(Service::default());
 }
 
+#[tauri::command]
+fn exit(window: tauri::Window) {
+    window.close().unwrap()
+}
+
 #[tokio::main]
 async fn main() {
     app::init(&RB).await.unwrap();
@@ -50,7 +55,7 @@ async fn main() {
             SERVICE.lock().unwrap().set_win(win.clone())
         })
         .menu(menu)
-        .invoke_handler(tauri::generate_handler![exec])
+        .invoke_handler(tauri::generate_handler![exec, exit])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

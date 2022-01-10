@@ -1,4 +1,4 @@
-use std::fs::{File, OpenOptions};
+use std::fs::{File};
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::path::Path;

@@ -16,7 +16,9 @@
 </template>
 
 <script>
+import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
+
 export default {
   name: 'App',
   data() {
@@ -85,10 +87,25 @@ export default {
       })
     })
   },
+  mounted(){
+    window.addEventListener('keydown', this.keyDownHander, false)
+  },
+  destroyed(){
+    window.removeEventListener("keydown", this.keyDownHander, false)
+  },
   methods: {
     goToEnd(){
       let div = document.getElementsByClassName('console')[0]
       div.scrollTop = div.scrollHeight + 20
+    },
+    keyDownHander(e){
+        if(e.keyCode === 67 && e.metaKey){
+          document.execCommand('copy');
+        } else if (e.keyCode === 86 && e.metaKey){
+          document.execCommand('paste')
+        } else if (e.keyCode === 81 && e.metaKey){
+          invoke('exit')
+        }
     }
   }
 }
