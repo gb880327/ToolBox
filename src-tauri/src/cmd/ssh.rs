@@ -97,28 +97,28 @@ impl SshUtil {
         }
     }
 
-    pub fn download_sftp(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
-        self.console("开始下载文件！".into());
-        let sftp = self.session.as_ref().unwrap().sftp()?;
-        let capacity = 1024 * 1024;
-        let fs = sftp.open(remote_path)?;
+    // pub fn download_sftp(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
+    //     self.console("开始下载文件！".into());
+    //     let sftp = self.session.as_ref().unwrap().sftp()?;
+    //     let capacity = 1024 * 1024;
+    //     let fs = sftp.open(remote_path)?;
 
-        // let len = fs.stat().unwrap().size.unwrap();
-        let mut input_file = std::io::BufReader::with_capacity(capacity, fs);
-        let mut fs = OpenOptions::new().create(true).append(true).open(file_path)?;
-        std::io::copy(&mut input_file, &mut fs)?;
-        Ok(())
-    }
+    //     // let len = fs.stat().unwrap().size.unwrap();
+    //     let mut input_file = std::io::BufReader::with_capacity(capacity, fs);
+    //     let mut fs = OpenOptions::new().create(true).append(true).open(file_path)?;
+    //     std::io::copy(&mut input_file, &mut fs)?;
+    //     Ok(())
+    // }
 
-    pub fn is_dir(&mut self, path: &Path) -> Result<bool> {
-        match self.session.as_ref().unwrap().sftp() {
-            Ok(sftp) => {
-                let stat = sftp.stat(path)?;
-                Ok(stat.is_dir())
-            }
-            Err(err) => Err(anyhow!(err.to_string()))
-        }
-    }
+    // pub fn is_dir(&mut self, path: &Path) -> Result<bool> {
+    //     match self.session.as_ref().unwrap().sftp() {
+    //         Ok(sftp) => {
+    //             let stat = sftp.stat(path)?;
+    //             Ok(stat.is_dir())
+    //         }
+    //         Err(err) => Err(anyhow!(err.to_string()))
+    //     }
+    // }
 
     pub fn check_dir(&mut self, path: &Path) -> Result<()> {
         match self.session.as_ref().unwrap().sftp() {

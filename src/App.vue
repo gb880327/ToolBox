@@ -105,7 +105,7 @@ export default {
     padding: 10px 10px;
   }
   .swal2-container{
-    z-index: 9999;
+    z-index: 99999 !important;
   }
   .tool{
     margin-bottom: 10px;

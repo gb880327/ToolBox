@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::ops::Add;
-use std::path::Path;
 use std::sync::mpsc;
 
 use anyhow::{anyhow, Result};
@@ -30,7 +29,12 @@ pub struct RequestParam {
     pub param: Option<Map<String, Value>>,
 }
 
-fn get_db_path() -> Result<String> {
+struct ConfigInfo {
+    pub path: String,
+    pub is_new: bool,
+}
+
+fn get_db_path() -> Result<ConfigInfo> {
     let mut config_path = config_dir().unwrap().join("ToolBox");
     if !config_path.exists() {
         std::fs::create_dir(config_path.clone()).expect("配置文件初始化失败！");
@@ -45,19 +49,14 @@ fn get_db_path() -> Result<String> {
         std::fs::File::create(config_path.clone()).expect("配置文件初始化失败！");
     }
     let db_path = config_path.to_str().expect("配置文件路径不存在！");
-    Ok(db_path.to_string())
+    Ok(ConfigInfo { path: db_path.to_string(), is_new })
 }
 
 pub async fn init(rb: &Rbatis) -> Result<()> {
-    let db_path = get_db_path()?;
-    let path = Path::new(&db_path);
-    let is_new = !path.exists();
-    if is_new {
-        std::fs::File::create(path).expect("配置文件初始化失败！");
-    }
-    let db_url = String::from("sqlite://").add(db_path.as_str());
+    let config = get_db_path()?;
+    let db_url = String::from("sqlite://").add(config.path.as_str());
     rb.link(&db_url).await?;
-    if is_new {
+    if config.is_new {
         match Asset::get("table.sql") {
             Some(content) => {
                 let sql = match content.data {
@@ -118,7 +117,7 @@ pub enum MethodEvent {
     GenSetting,
     SaveGenSetting,
     TableAndTemplate,
-    GenTemplate
+    GenTemplate,
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
