@@ -8,7 +8,7 @@ pub mod ssh;
 
 fn status(code: i32) -> Result<()> {
     if code == 1 || code == 2 || code == 126 || code == 127 || code == 128 {
-        Err(anyhow!("命令执行错误！"))
+        Err(anyhow!(format!("命令执行错误！ {}", code)))
     } else {
         Ok(())
     }
@@ -18,11 +18,12 @@ fn status(code: i32) -> Result<()> {
 pub struct CmdUtil {
     pub current_dir: String,
     pub win: Window,
+    pub envs: Vec<String>
 }
 
 impl CmdUtil {
-    pub fn new(win: Window) -> CmdUtil {
-        CmdUtil { current_dir: String::from(""), win }
+    pub fn new(win: Window, envs: Vec<String>) -> CmdUtil {
+        CmdUtil { current_dir: String::from(""), win , envs}
     }
 
     fn console(&self, msg: String) {
@@ -44,9 +45,18 @@ impl CmdUtil {
                 }
             };
         } else {
+            let env = match std::env::vars().find(|(k, _v)| k.eq("PATH")) {
+                Some((_key, val))=> {
+                    let mut envs = self.envs.clone();
+                    envs.push(val);
+                    envs.join(":")
+                },
+                None=> "".to_owned()
+            };
+
             out = match self.current_dir.len() {
-                0 => Command::new("sh").stdin(Stdio::piped()).stdout(Stdio::piped()).arg("-c").arg(cmd).spawn()?,
-                _ => Command::new("sh").current_dir(&self.current_dir).stdin(Stdio::piped()).stdout(Stdio::piped()).arg("-c").arg(cmd).spawn()?
+                0 => Command::new("sh").env("PATH", env).stdin(Stdio::piped()).stdout(Stdio::piped()).arg("-c").arg(cmd).spawn()?,
+                _ => Command::new("sh").env("PATH", env).current_dir(&self.current_dir).stdin(Stdio::piped()).stdout(Stdio::piped()).arg("-c").arg(cmd).spawn()?
             };
         }
         let mut buf_reader = BufReader::new(out.stdout.take().unwrap());

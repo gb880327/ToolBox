@@ -112,5 +112,11 @@ CREATE TABLE "template" (
 -- ----------------------------
 -- Auto increment value for deploy_project
 -- ----------------------------
+DROP TABLE IF EXISTS "env";
+CREATE TABLE "env" (
+  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT,
+  "value" TEXT
+);
 
 PRAGMA foreign_keys = true;

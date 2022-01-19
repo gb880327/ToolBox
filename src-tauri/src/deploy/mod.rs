@@ -17,8 +17,8 @@ pub struct DeployUtil {
 
 
 impl DeployUtil {
-    pub fn new(win: Window) -> Result<DeployUtil> {
-        let cmd = CmdUtil::new(win.clone());
+    pub fn new(win: Window, envs: Vec<String>) -> Result<DeployUtil> {
+        let cmd = CmdUtil::new(win.clone(), envs);
         let ssh = SshUtil::new(win.clone());
         Ok(DeployUtil { cmd, win, ssh })
     }

@@ -147,3 +147,16 @@ pub struct Column {
     pub key: Option<String>,
     pub comment: Option<String>,
 }
+#[derive(CRUDTable, Debug, Clone, Deserialize, Serialize)]
+pub struct Env {
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub value: Option<String>
+}
+
+#[async_trait]
+impl BaseModel<Env> for Env {
+    fn meta(&mut self) -> Env {
+        self.clone()
+    }
+}

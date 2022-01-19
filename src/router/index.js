@@ -17,6 +17,16 @@ let routes = [{
             title: '项目部署'
         }
     },
+    ,
+    {
+        path: "/env",
+        name: "env",
+        component: (resolve) => require(["@/views/deploy/env.vue"], resolve),
+        meta: {
+            key: '/env',
+            title: '环境变量管理'
+        }
+    },
     {
         path: "/server",
         name: "server",

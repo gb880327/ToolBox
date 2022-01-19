@@ -38,13 +38,13 @@ pub async fn save<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &
     }
 }
 
-pub async fn update<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T) -> Option<u64> {
-    unwrap(rb.update_by_wrapper(bean, rb.new_wrapper(), &[]).await)
+pub async fn update<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T, id: i64) -> Option<u64> {
+    unwrap(rb.update_by_wrapper(bean, rb.new_wrapper().eq("id", id), &[]).await)
 }
 
 pub async fn save_or_update<T: CRUDTable + for<'de> Deserialize<'de>>(rb: &Rbatis, bean: &T, id: Option<i64>) -> Option<u64> {
     match id {
-        Some(_i) => update(rb, bean).await,
+        Some(i) => update(rb, bean, i).await,
         None => save(rb, bean).await
     }
 }

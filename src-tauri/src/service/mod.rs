@@ -127,14 +127,24 @@ impl Service {
     pub fn deploy_project(&mut self) -> Option<bool> {
         let deploy_info: DeployInfo = self.param.as_ref()?.get_bean("info")?;
         let win = self.win.as_mut()?.clone();
+
+        let envs = match block_on(Env::list(&super::RB, None)){
+            Some(val)=> {
+                let tmp: Vec<String> = val.iter().map(|x| x.value.as_ref().unwrap().to_owned()).collect();
+                tmp
+            },
+            None=> vec![]
+        };
+
         std::thread::spawn(move || {
-            let mut deploy_util = DeployUtil::new(win.clone()).unwrap();
+            let mut deploy_util = DeployUtil::new(win.clone(), envs).unwrap();
             match deploy_util.exec(deploy_info) {
-                Ok(_rst) => win.emit("console", "over").unwrap(),
+                Ok(_rst) => {},
                 Err(err) => {
                     win.emit("error", err.to_string()).unwrap();
                 }
             }
+            win.emit("console", "over").unwrap()
         });
         Some(true)
     }
@@ -263,6 +273,21 @@ impl Service {
             Err(_err) => Some(false)
         }
     }
+
+    pub fn envs(&mut self)-> Option<Page<Env>> {
+        block_on(Env::list_by_page(&super::RB, None, self.param.as_ref()?.get_page_param()?))
+    }
+
+    pub fn save_env(&mut self)->Option<bool> {
+        let env: Env = self.param.as_ref()?.get_bean("env")?;
+        Some(block_on(save_or_update(&super::RB, &env, env.id))? > 0)
+    }
+
+    pub fn remove_env(&mut self) -> Option<bool> {
+        let id = self.param.as_ref()?.get_int("id")?;
+        Some(block_on(Env::remove(&super::RB, Some(new_wrapper().eq("id", id))))? > 0)
+    }
+
 }
 
 /**

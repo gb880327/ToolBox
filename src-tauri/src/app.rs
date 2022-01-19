@@ -118,6 +118,9 @@ pub enum MethodEvent {
     SaveGenSetting,
     TableAndTemplate,
     GenTemplate,
+    Envs,
+    SaveEnv,
+    RemoveEnv
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
@@ -144,6 +147,9 @@ fn exec_method(params: RequestParam) -> Result<String> {
         MethodEvent::GenSetting => unwrap(params.method, super::SERVICE.lock().unwrap().gen_setting()),
         MethodEvent::SaveGenSetting => unwrap(params.method, super::SERVICE.lock().unwrap().save_gen_setting()),
         MethodEvent::TableAndTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().table_and_template()),
-        MethodEvent::GenTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().gen_template())
+        MethodEvent::GenTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().gen_template()),
+        MethodEvent::Envs=> unwrap(params.method, super::SERVICE.lock().unwrap().envs()),
+        MethodEvent::SaveEnv=> unwrap(params.method, super::SERVICE.lock().unwrap().save_env()),
+        MethodEvent::RemoveEnv=> unwrap(params.method, super::SERVICE.lock().unwrap().remove_env())
     }
 }

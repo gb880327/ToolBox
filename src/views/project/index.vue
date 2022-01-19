@@ -111,7 +111,7 @@ export default {
         },
         modify(row){
             this.title = '修改项目'
-            this.form = row
+            this.form = JSON.parse(JSON.stringify(row))
             this.$refs.dialog.show()
         },
         remove(row){
