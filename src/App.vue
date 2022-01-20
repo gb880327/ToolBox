@@ -26,8 +26,9 @@ export default {
         activeIndex: "/",
         menus: [
           { path: '/', title: '项目管理' },
-          { path: '/deploy', title: '项目部署', subItems: [ { path: '/deploy', title: '项目部署' }, { path: '/server', title: '服务器管理' }, { path: '/env', title: '环境变量管理' } ] },
-          { path: '/codegen', title: '代码生成', subItems: [ { path: '/codegen', title: '代码生成' }, { path: '/datasource', title: '数据源管理' }, { path: '/template', title: '模板管理' } ] }
+          { path: '/deploy', title: '项目部署', subItems: [ { path: '/deploy', title: '项目部署' }, { path: '/server', title: '服务器管理' } ] },
+          { path: '/codegen', title: '代码生成', subItems: [ { path: '/codegen', title: '代码生成' }, { path: '/datasource', title: '数据源管理' }, { path: '/template', title: '模板管理' } ] },
+          { path: '/env', title: '环境变量' }
         ],
         titleMap: {'/deploy': '项目部署', '/codegen': '代码生成'},
         logs: [],

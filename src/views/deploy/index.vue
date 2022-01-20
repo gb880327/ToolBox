@@ -28,7 +28,7 @@
                     </el-form-item>
                 </el-form>
 
-                <el-button type="success" round style="width: 70%;margin: 0 10%;" @click="exec" :disabled="$parent.isDeploy || !canRun">部署</el-button>
+                <el-button type="success" round style="width: 80%;margin: 0 10%;" @click="exec" :disabled="$parent.isDeploy || !canRun">部署</el-button>
             </el-col>
             <el-col :span="18">
                 <div class="console" :style="{height: (height - 20) + 'px'}">

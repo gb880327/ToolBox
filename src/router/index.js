@@ -21,7 +21,7 @@ let routes = [{
     {
         path: "/env",
         name: "env",
-        component: (resolve) => require(["@/views/deploy/env.vue"], resolve),
+        component: (resolve) => require(["@/views/env/index.vue"], resolve),
         meta: {
             key: '/env',
             title: '环境变量管理'
