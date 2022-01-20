@@ -1,9 +1,9 @@
 import Vue from "vue";
 import router from './router'
 import ElementUI from 'element-ui';
-// import 'element-ui/lib/theme-chalk/index.css';
-import '@/assets/style/theme/index.css'
+import 'element-theme-dark'
 import Swal from 'sweetalert2'
+import '@sweetalert2/theme-wordpress-admin/wordpress-admin.min.css'
 import App from "./App.vue";
 import mixin from './mixin'
 import MyPagination from "@/components/pagination";
@@ -68,8 +68,6 @@ Vue.prototype.confirm = (msg) => {
             title: msg ? msg : '确定要删除该信息?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
             cancelButtonText: '取消',
             confirmButtonText: '确认!'
         }).then(result => {
