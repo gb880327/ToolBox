@@ -23,7 +23,7 @@ impl DeployUtil {
         Ok(DeployUtil { cmd, win, ssh })
     }
 
-    fn str_to_vec(value: String) -> Vec<String> {
+    fn str_to_vec(value: &String) -> Vec<String> {
         let mut cmds = vec![];
         if !value.is_empty() {
             for str in value.split("\n") {
@@ -33,19 +33,19 @@ impl DeployUtil {
         cmds
     }
 
-    fn replace_with_reg(reg: &Regex, value: String, replace: String) -> String {
-        reg.replace_all(&*value, replace.as_str()).to_string()
+    fn replace_with_reg(reg: &Regex, value: &String, replace: &String) -> String {
+        reg.replace_all(value, replace).to_string()
     }
 
-    fn replace_cmd(cmds: Vec<String>, source_dir: String, remote_dir: String, target_name: String) -> Vec<String> {
+    fn replace_cmd(cmds: Vec<String>, source_dir: &String, remote_dir: &String, target_name: &String) -> Vec<String> {
         let target_name_reg = Regex::new(r"(\{target_name\})").unwrap();
         let remote_dir_reg = Regex::new(r"(\{remote_dir\})").unwrap();
         let source_dir_reg = Regex::new(r"(\{source_dir\})").unwrap();
 
         cmds.iter().map(|x| x.as_str().to_string())
-            .map(|x| DeployUtil::replace_with_reg(&target_name_reg, x.clone(), target_name.clone()))
-            .map(|x| DeployUtil::replace_with_reg(&remote_dir_reg, x.clone(), remote_dir.clone()))
-            .map(|x| DeployUtil::replace_with_reg(&source_dir_reg, x.clone(), source_dir.clone()))
+            .map(|x| DeployUtil::replace_with_reg(&target_name_reg, &x, target_name))
+            .map(|x| DeployUtil::replace_with_reg(&remote_dir_reg, &x, remote_dir))
+            .map(|x| DeployUtil::replace_with_reg(&source_dir_reg, &x, source_dir))
             .collect()
     }
 
@@ -85,15 +85,14 @@ impl DeployUtil {
         match self.login_server(host, port, user, password, private_key, auth_type) {
             Err(err) => Err(anyhow!(err.to_string())),
             Ok(()) => {
-                let file_path = Path::new(&source).join(&command.target_name.as_ref().unwrap());
+                let file_path = Path::new(source).join(&command.target_name.as_ref().unwrap());
                 let target_path = Path::new(remote_dir);
                 self.ssh.check_dir(target_path)?;
                 self.ssh.upload_file(file_path.as_path(), target_path.join(&command.target_name.as_ref().unwrap()).as_path())?;
                 std::fs::remove_file(file_path)?;
 
-                let after = DeployUtil::str_to_vec(command.after.as_ref().unwrap().clone());
-                let after = DeployUtil::replace_cmd(after, source.clone(), remote_dir.clone(),
-                                                    command.target_name.as_ref().unwrap().clone());
+                let after = DeployUtil::str_to_vec(&command.after.as_ref().unwrap());
+                let after = DeployUtil::replace_cmd(after, source, remote_dir,command.target_name.as_ref().unwrap());
                 for cmd in after {
                     self.ssh.exec(cmd)?;
                 }
@@ -106,14 +105,13 @@ impl DeployUtil {
     fn before_deploy(&mut self, source: &String, command: &Command) -> Result<()> {
         self.win.emit("console", "开始部署前置操作!").unwrap();
         let source_dir = source.clone();
-        let target_file = Path::new(&source_dir).join(&command.target_name.as_ref().unwrap());
+        let target_file = Path::new(source).join(&command.target_name.as_ref().unwrap());
         if target_file.exists() {
             std::fs::remove_file(target_file)?;
         }
         self.cmd.change_path(source_dir);
-        let before = DeployUtil::str_to_vec(command.before.as_ref().unwrap().clone());
-        let before = DeployUtil::replace_cmd(before, source.clone(), command.remote_dir.as_ref().unwrap().clone(),
-                                             command.target_name.as_ref().unwrap().clone());
+        let before = DeployUtil::str_to_vec(&command.before.as_ref().unwrap());
+        let before = DeployUtil::replace_cmd(before, source, command.remote_dir.as_ref().unwrap(),command.target_name.as_ref().unwrap());
         for cmd in before {
             self.cmd.exec(cmd)?;
         }
@@ -122,12 +120,12 @@ impl DeployUtil {
     }
 
     pub fn login_server(&mut self, host: &String, port: &i64, user: &String, password: &String, key_str: &String, auth_type: &i64) -> Result<()> {
-        self.ssh.connect(host.clone(), port.clone())?;
+        self.ssh.connect(host, port)?;
         if auth_type.eq(&1) {
             let private_key = Path::new(key_str);
-            self.ssh.login_with_pubkey(user.clone(), private_key)?;
+            self.ssh.login_with_pubkey(user, private_key)?;
         } else {
-            self.ssh.login_with_pwd(user.clone(), password.clone())?;
+            self.ssh.login_with_pwd(user, password)?;
         }
         Ok(())
     }

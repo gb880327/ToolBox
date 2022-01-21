@@ -35,7 +35,7 @@ impl RenderTemplate for JavaRender {
         let package = replace_package(file_path.clone());
         context.insert(KString::from("package"), Value::scalar(package));
         let mut temp_path = path.join(file_path);
-        JavaRender::check_path(temp_path.clone())?;
+        JavaRender::check_path(&temp_path)?;
 
         let file_name = liquid.parse(&template.file_name)?.render(context)?;
         temp_path = temp_path.join(file_name);

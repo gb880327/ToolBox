@@ -19,7 +19,7 @@ impl SshUtil {
         SshUtil { session: None, win }
     }
 
-    pub fn connect(&mut self, host: String, port: i64) -> Result<()> {
+    pub fn connect(&mut self, host: &String, port: &i64) -> Result<()> {
         let mut session = Session::new()?;
         let mut server = String::from(host);
         server.push(':');
@@ -41,12 +41,12 @@ impl SshUtil {
         self.win.emit("console", msg).unwrap();
     }
 
-    pub fn login_with_pwd(&mut self, name: String, password: String) -> Result<()> {
-        Ok(self.session.as_ref().unwrap().userauth_password(&name, &password)?)
+    pub fn login_with_pwd(&mut self, name: &String, password: &String) -> Result<()> {
+        Ok(self.session.as_ref().unwrap().userauth_password(name, password)?)
     }
 
-    pub fn login_with_pubkey(&mut self, name: String, private_key: &Path) -> Result<()> {
-        Ok(self.session.as_ref().unwrap().userauth_pubkey_file(&name, None, private_key, None)?)
+    pub fn login_with_pubkey(&mut self, name: &String, private_key: &Path) -> Result<()> {
+        Ok(self.session.as_ref().unwrap().userauth_pubkey_file(name, None, private_key, None)?)
     }
 
     pub fn exec(&mut self, cmd: String) -> Result<()> {

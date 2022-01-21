@@ -45,7 +45,7 @@ pub trait RenderTemplate {
             }
         };
         let mut temp_path = path.join(JavaRender::check_path_str(template.file_path));
-        JavaRender::check_path(temp_path.clone())?;
+        JavaRender::check_path(&temp_path)?;
 
         let file_name = liquid.parse(&template.file_name)?.render(context)?;
         temp_path = temp_path.join(file_name);
@@ -67,10 +67,10 @@ pub trait RenderTemplate {
         if path.starts_with("/") || path.starts_with("\\") {
             path.remove(0);
         }
-        path.clone()
+        path
     }
 
-    fn check_path(path: PathBuf) -> Result<()> {
+    fn check_path(path: &PathBuf) -> Result<()> {
         if !path.exists() {
             match std::fs::create_dir_all(path) {
                 Ok(()) => Ok(()),
