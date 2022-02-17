@@ -89,10 +89,10 @@ export default {
     })
   },
   mounted(){
-    window.addEventListener('keydown', this.keyDownHander, false)
+    // window.addEventListener('keydown', this.keyDownHander, false)
   },
   destroyed(){
-    window.removeEventListener("keydown", this.keyDownHander, false)
+    // window.removeEventListener("keydown", this.keyDownHander, false)
   },
   methods: {
     goToEnd(){

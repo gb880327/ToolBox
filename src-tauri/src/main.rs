@@ -11,7 +11,7 @@ extern crate serde;
 
 use std::sync::Mutex;
 use rbatis::rbatis::Rbatis;
-use tauri::{LogicalPosition, LogicalSize, Menu, MenuItem, Position, Size};
+use tauri::{LogicalPosition, LogicalSize, Menu, MenuItem, Position, Size, Submenu};
 use app::exec;
 use service::Service;
 
@@ -37,14 +37,14 @@ fn exit(window: tauri::Window) {
 #[tokio::main]
 async fn main() {
     app::init(&RB).await.unwrap();
-    let menu = Menu::new()
+    let menu = Menu::new().add_submenu(Submenu::new("编辑", Menu::new()
         .add_native_item(MenuItem::Copy)
         .add_native_item(MenuItem::Paste)
         .add_native_item(MenuItem::Cut)
         .add_native_item(MenuItem::Redo)
         .add_native_item(MenuItem::SelectAll)
         .add_native_item(MenuItem::Undo)
-        .add_native_item(MenuItem::Quit);
+        .add_native_item(MenuItem::Quit)));
     tauri::Builder::default()
         .on_page_load(move |win, _| {
             win.set_title("Rookie的工具箱").unwrap();
