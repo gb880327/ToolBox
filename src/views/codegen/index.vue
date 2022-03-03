@@ -3,9 +3,9 @@
         <el-row>
             <el-col :span="4" class="border-right" :style="{height: height + 'px'}">
                 <ul class="list">
-                    <el-radio-group v-model="form.projectId" @change="projectChange">
-                        <el-radio v-for="(item,i) of projects" :key="item.id" :label="item.id">{{item.name}}</el-radio>
-                    </el-radio-group>
+                    <li v-for="(item,i) of projects" :key="item.id">
+                        <el-radio v-model="form.projectId" :label="item.id" @change="projectChange">{{item.name}}</el-radio>
+                    </li>
                 </ul>
             </el-col>
             <el-col :span="20" style="padding: 0 10px;">
@@ -93,9 +93,14 @@ export default {
             }, {pageNum: 1, pageSize: 10000})
         },
         projectChange(){
+            if(!this.form.projectId){
+                return
+            }
             this.invoke('TableAndTemplate', (data)=> {
-                this.tables = data.table
-                this.templates = data.template
+                if(data){
+                    this.tables = data.table
+                    this.templates = data.template
+                }
             }, {projectId: this.form.projectId})
         },
         allTableChange(val){
@@ -139,19 +144,7 @@ export default {
   width: 95%;
 }
 .list li{
-  list-style: none;
-  margin: 8px 0;
-  padding: 0 10px;
-  border-radius: 5px;
-  border: 1px solid #303133;
-}
-.list li span{
-  vertical-align: middle;
-  line-height: 32px;
-  font-size: 12px;
-  display: inline-block;
-  width: calc(100% - 50px);
-  cursor: pointer;
+    margin: 10px 0;
 }
 .selected {
   background-color: #25374F;

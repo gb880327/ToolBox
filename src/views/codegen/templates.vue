@@ -172,7 +172,7 @@ export default {
     justify-content: space-between;
     font-size: 14px;
     padding-right: 8px;
-    color: black;
+    color: #FFFFFF;
 }
 .category-title {
     font-size: 12px;

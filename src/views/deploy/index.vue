@@ -2,32 +2,28 @@
     <div class="content">
         <el-row>
             <el-col :span="6" class="border-right" :style="{height: height + 'px'}">
-                <el-form label-width="100px" :style="{height: (height-40) + 'px', maxHeight: (height-40) + 'px'}" style="padding-right: 10px;">
-                    <el-form-item label="部署项目：" class="item">
-                        <div class="items">
-                            <el-radio-group v-model="form.projectId" @change="projectChange">
-                                <el-radio v-for="(item,i) of projects" :key="item.id" :label="item.id">{{item.name}}</el-radio>
-                            </el-radio-group>
-                        </div>
-                    </el-form-item>
+                <div :style="{height: leftHeight + 'px', maxHeight: leftHeight + 'px'}" style="padding-right: 10px;">
+                    <div class="plane">
+                        <span class="title">部署项目</span>
+                        <el-select v-model="form.projectId" placeholder="请选择" style="width: 100%;" @change="projectChange">
+                            <el-option v-for="(item,i) of projects" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                        </el-select>
+                    </div>
                     <el-divider></el-divider>
-                    <el-form-item label="部署服务器：" class="item">
-                        <div class="items">
-                            <el-checkbox-group v-model="form.serverIds" size="small">
-                                <el-checkbox v-for="(item,i) of servers" :key="item.id" :label="item.id">{{item.name}}</el-checkbox>
-                            </el-checkbox-group>
-                        </div>
-                    </el-form-item>
+                    <div class="plane">
+                        <span class="title">部署服务器</span>
+                        <el-select v-model="form.serverIds" multiple placeholder="请选择" style="width: 100%;">
+                            <el-option v-for="(item,i) of servers" :key="item.id" :value="item.id" :label="item.name"></el-option>
+                        </el-select>
+                    </div>
                     <el-divider></el-divider>
-                    <el-form-item label="部署环境：" class="item">
-                        <div class="items">
-                            <el-radio-group v-model="form.profile">
-                                <el-radio v-for="(item,i) of profiles" :key="item.id" :label="item.id">{{item.profile}}</el-radio>
-                            </el-radio-group>
-                        </div>
-                    </el-form-item>
-                </el-form>
-
+                    <div class="plane">
+                        <span class="title">部署环境</span>
+                        <el-select v-model="form.profile" placeholder="请选择" style="width: 100%;">
+                            <el-option v-for="(item,i) of profiles" :key="item.id" :value="item.id" :label="item.profile"></el-option>
+                        </el-select>
+                    </div>
+                </div>
                 <el-button type="success" round style="width: 80%;margin: 0 10%;" @click="exec" :disabled="$parent.isDeploy || !canRun">部署</el-button>
             </el-col>
             <el-col :span="18">
@@ -47,6 +43,7 @@ export default {
     data(){
         return {
             height: window.innerHeight - 90,
+            leftHeight: window.innerHeight - 150,
             projects: [],
             servers: [],
             profiles: [],
@@ -112,20 +109,20 @@ export default {
 }
 </script>
 <style scoped>
-.item {
+.title {
+    color: #FFFFFF;
+    font-size: 14px;
+    display: block;
+    border-bottom: 1px solid black;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+.plane {
     overflow-x: scroll;
+    margin: 15px 0;
 }
 .border-right {
     border-right: 1px solid #dcdfe6;
-}
-.items {
-    padding-left: 5px;
-    max-height: 250px;
-    overflow-y: scroll;
-}
-.el-radio {
-    display: block !important;
-    margin: 10px 0 !important;
 }
 .el-checkbox {
     display: block !important;
