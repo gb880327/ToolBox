@@ -7,13 +7,12 @@ use dirs::config_dir;
 use rbatis::rbatis::Rbatis;
 use rust_embed::RustEmbed;
 use serde_json::{Map, Value};
-use tauri::Window;
 
 use crate::database;
 
 #[derive(RustEmbed)]
 #[folder = "assets"]
-struct Asset;
+pub struct Asset;
 
 #[derive(Serialize, Debug)]
 pub struct ResponseMsg<T> {
@@ -80,17 +79,17 @@ pub fn unwrap<T: serde::Serialize + core::fmt::Debug>(method: MethodEvent, data:
 }
 
 #[tauri::command]
-pub fn exec(win: Window, params: RequestParam) {
+pub fn exec(params: RequestParam) {
     let (tx, rx) = mpsc::channel();
     let thread = std::thread::spawn(move || tx.send(exec_method(params)).unwrap());
     match thread.join() {
         Ok(_t) => {}
-        Err(_err) => win.emit("error", "接口调用错误！").unwrap()
+        Err(_err) => super::SERVICE.lock().unwrap().console("error", String::from("接口调用错误！"))
     };
     let resp = rx.recv().unwrap();
     match resp {
-        Ok(t) => win.emit("response", t).unwrap(),
-        Err(err) => win.emit("error", err.to_string()).unwrap()
+        Ok(t) => super::SERVICE.lock().unwrap().console("response", t),
+        Err(err) => super::SERVICE.lock().unwrap().console("error", err.to_string())
     }
 }
 

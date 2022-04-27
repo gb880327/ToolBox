@@ -6,9 +6,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 use chrono::prelude::Local;
 use kstring::KString;
+use liquid::{Object};
 use liquid::model::{Array, Value};
-use liquid::Object;
-use tauri::Window;
 
 use java::JavaRender;
 use text::TextRender;
@@ -83,7 +82,7 @@ pub trait RenderTemplate {
 }
 
 impl TemplateRender {
-    pub fn render(&mut self, win: Window) -> Result<()> {
+    pub fn render(&mut self) -> Result<()> {
         let date = Local::now().format("%Y-%m-%d %H:%M").to_string();
         for table in self.table.iter_mut() {
             let mut context = liquid::Object::new();
@@ -95,19 +94,19 @@ impl TemplateRender {
                 if tp.lang == "java" {
                     TemplateRender::column_type(&mut context, tp.lang.clone(), table.column.clone());
                     match JavaRender::render(&mut context, tp.clone(), self.root_path.clone(), self.output.clone()) {
-                        Ok(path) => win.emit("console", format!("{} 生成成功！", path)).unwrap(),
+                        Ok(path) => super::SERVICE.lock().unwrap().console("console", format!("{} 生成成功！", path)),
                         Err(err) =>
-                            win.emit("console_error", format!("{} 生成失败！\n {}", tp.file_name, err)).unwrap()
+                            super::SERVICE.lock().unwrap().console("console_error", format!("{} 生成失败！\n {}", tp.file_name, err))
                     };
                 } else if tp.lang == "text" {
                     match TextRender::render(&mut context, tp.clone(), self.root_path.clone(), self.output.clone()) {
-                        Ok(path) => win.emit("console", format!("{} 生成成功！", path)).unwrap(),
-                        Err(err) => win.emit("console_error", format!("{} 生成失败！\n {}", tp.file_name, err)).unwrap()
+                        Ok(path) => super::SERVICE.lock().unwrap().console("console", format!("{} 生成成功！", path)),
+                        Err(err) => super::SERVICE.lock().unwrap().console("console_error", format!("{} 生成失败！\n {}", tp.file_name, err))
                     };
                 }
             }
         }
-        win.emit("console", "over").unwrap();
+        super::SERVICE.lock().unwrap().console("console", "over".to_string());
         Ok(())
     }
 

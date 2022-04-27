@@ -2,8 +2,6 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use regex::Regex;
-use tauri::Window;
-
 use crate::cmd::CmdUtil;
 use crate::cmd::ssh::SshUtil;
 use crate::model::{Command, Server};
@@ -12,15 +10,14 @@ use crate::model::service::DeployInfo;
 pub struct DeployUtil {
     pub cmd: CmdUtil,
     pub ssh: SshUtil,
-    pub win: Window,
 }
 
 
 impl DeployUtil {
-    pub fn new(win: Window, envs: Vec<String>) -> Result<DeployUtil> {
-        let cmd = CmdUtil::new(win.clone(), envs);
-        let ssh = SshUtil::new(win.clone());
-        Ok(DeployUtil { cmd, win, ssh })
+    pub fn new(envs: Vec<String>) -> Result<DeployUtil> {
+        let cmd = CmdUtil::new(envs);
+        let ssh = SshUtil::new();
+        Ok(DeployUtil { cmd, ssh })
     }
 
     fn str_to_vec(value: &String) -> Vec<String> {
@@ -38,9 +35,9 @@ impl DeployUtil {
     }
 
     fn replace_cmd(cmds: Vec<String>, source_dir: &String, remote_dir: &String, target_name: &String) -> Vec<String> {
-        let target_name_reg = Regex::new(r"(\{target_name\})").unwrap();
-        let remote_dir_reg = Regex::new(r"(\{remote_dir\})").unwrap();
-        let source_dir_reg = Regex::new(r"(\{source_dir\})").unwrap();
+        let target_name_reg = Regex::new(r"(\{target_name})").unwrap();
+        let remote_dir_reg = Regex::new(r"(\{remote_dir})").unwrap();
+        let source_dir_reg = Regex::new(r"(\{source_dir})").unwrap();
 
         cmds.iter().map(|x| x.as_str().to_string())
             .map(|x| DeployUtil::replace_with_reg(&target_name_reg, &x, target_name))
@@ -55,14 +52,14 @@ impl DeployUtil {
         match self.before_deploy(&source, &command) {
             Ok(()) => {}
             Err(err) => {
-                self.win.emit("console_error", err.to_string()).unwrap();
+                super::SERVICE.lock().unwrap().console("console_error", err.to_string());
                 return Err(anyhow!(err.to_string()));
             }
         }
         for server in info.servers {
             match self.deploy(&source, &server, &command) {
                 Err(err) => {
-                    self.win.emit("console", format!("服务器 {} 部署失败！({})", &server.name.unwrap(), err.to_string())).unwrap();
+                    super::SERVICE.lock().unwrap().console("console", format!("服务器 {} 部署失败！({})", &server.name.unwrap(), err.to_string()));
                     continue;
                 }
                 Ok(()) => {}
@@ -81,13 +78,13 @@ impl DeployUtil {
         let auth_type = server.auth_type.as_ref().unwrap();
         let remote_dir = command.remote_dir.as_ref().unwrap();
 
-        self.win.emit("console", format!("{} 部署开始！", name)).unwrap();
+        super::SERVICE.lock().unwrap().console("console", format!("{} 部署开始！", name));
         match self.login_server(host, port, user, password, private_key, auth_type) {
             Err(err) => Err(anyhow!(err.to_string())),
             Ok(()) => {
                 let file_path = Path::new(source).join(&command.target_name.as_ref().unwrap());
                 let target_path = Path::new(remote_dir);
-                self.ssh.check_dir(target_path)?;
+                self.ssh.check_remote_dir(target_path, true)?;
                 self.ssh.upload_file(file_path.as_path(), target_path.join(&command.target_name.as_ref().unwrap()).as_path())?;
                 std::fs::remove_file(file_path)?;
 
@@ -96,14 +93,14 @@ impl DeployUtil {
                 for cmd in after {
                     self.ssh.exec(cmd)?;
                 }
-                self.win.emit("console", format!("{} 部署完成！", server.name.as_ref().unwrap())).unwrap();
+                super::SERVICE.lock().unwrap().console("console", format!("{} 部署完成！", server.name.as_ref().unwrap()));
                 Ok(())
             }
         }
     }
 
     fn before_deploy(&mut self, source: &String, command: &Command) -> Result<()> {
-        self.win.emit("console", "开始部署前置操作!").unwrap();
+        super::SERVICE.lock().unwrap().console("console", "开始部署前置操作!".to_string());
         let source_dir = source.clone();
         let target_file = Path::new(source).join(&command.target_name.as_ref().unwrap());
         if target_file.exists() {
@@ -115,7 +112,7 @@ impl DeployUtil {
         for cmd in before {
             self.cmd.exec(cmd)?;
         }
-        self.win.emit("console", "完成部署前置操作!").unwrap();
+        super::SERVICE.lock().unwrap().console("console", "完成部署前置操作!".to_string());
         Ok(())
     }
 
@@ -129,4 +126,5 @@ impl DeployUtil {
         }
         Ok(())
     }
+
 }

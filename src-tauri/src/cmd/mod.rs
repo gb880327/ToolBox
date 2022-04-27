@@ -2,8 +2,6 @@ use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 
 use anyhow::{anyhow, Result};
-use tauri::Window;
-
 pub mod ssh;
 
 fn status(code: i32) -> Result<()> {
@@ -17,17 +15,16 @@ fn status(code: i32) -> Result<()> {
 #[derive(Clone)]
 pub struct CmdUtil {
     pub current_dir: String,
-    pub win: Window,
     pub envs: Vec<String>
 }
 
 impl CmdUtil {
-    pub fn new(win: Window, envs: Vec<String>) -> CmdUtil {
-        CmdUtil { current_dir: String::from(""), win , envs}
+    pub fn new(envs: Vec<String>) -> CmdUtil {
+        CmdUtil { current_dir: String::from(""), envs}
     }
 
     fn console(&self, msg: String) {
-        self.win.emit("console", msg).unwrap();
+        super::SERVICE.lock().unwrap().console("console", msg);
     }
 
     pub fn change_path(&mut self, path: String) {

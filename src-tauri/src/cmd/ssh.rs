@@ -1,22 +1,22 @@
-use std::fs::{File};
+use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::net::TcpStream;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use ssh2::Session;
-use tauri::Window;
+use indicatif::{ProgressBar, ProgressStyle};
+use ssh2::{FileStat, Session};
+
 use super::status;
 
 #[derive(Clone)]
 pub struct SshUtil {
     pub session: Option<Session>,
-    pub win: Window,
 }
 
 impl SshUtil {
-    pub fn new(win: Window) -> SshUtil {
-        SshUtil { session: None, win }
+    pub fn new() -> SshUtil {
+        SshUtil { session: None }
     }
 
     pub fn connect(&mut self, host: &String, port: &i64) -> Result<()> {
@@ -38,7 +38,7 @@ impl SshUtil {
     }
 
     fn console(&self, msg: String) {
-        self.win.emit("console", msg).unwrap();
+        super::super::SERVICE.lock().unwrap().console("console", msg);
     }
 
     pub fn login_with_pwd(&mut self, name: &String, password: &String) -> Result<()> {
@@ -68,7 +68,6 @@ impl SshUtil {
     }
 
     pub fn upload_file(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
-        self.console("开始文件上传！".into());
         let mut fs = File::open(file_path)?;
         let len = fs.metadata()?.len();
         let remote_file = self.session.as_ref().unwrap().scp_send(remote_path, 0o644, len.clone(), None);
@@ -80,14 +79,28 @@ impl SshUtil {
                     false => len / 1000
                 }) as usize];
                 let mut remote_file = remote_file?;
-
                 let mut pos = 0;
-                while pos < len {
-                    pos = pos + fs.read(&mut buf.as_mut_slice())? as u64;
-                    remote_file.write_all(&buf.as_slice())?;
-                    self.win.emit("console_progress", (pos as f64 * 100.0) / len as f64).unwrap();
+                let is_win = super::super::SERVICE.lock().unwrap().is_win;
+                if !is_win {
+                    let pb = ProgressBar::new(len.clone());
+                    let file_name = file_path.file_name().unwrap().to_str().unwrap();
+                    pb.set_style(ProgressStyle::default_bar()
+                        .template(&*format!("{0} {{spinner:.green}} [{{elapsed_precise}}] [{{bar:40.cyan/blue}}] {{bytes}}/{{total_bytes}} ({{bytes_per_sec}}, {{eta}})", file_name))
+                        .progress_chars("#>-"));
+                    while pos < len {
+                        pos = pos + fs.read(&mut buf.as_mut_slice())? as u64;
+                        remote_file.write_all(&buf.as_slice())?;
+                        pb.set_position(pos);
+                    }
+                    pb.finish();
+                } else {
+                    while pos < len {
+                        pos = pos + fs.read(&mut buf.as_mut_slice())? as u64;
+                        remote_file.write_all(&buf.as_slice())?;
+                        let tmp = (pos as f64 * 100.0) / len as f64;
+                        super::super::SERVICE.lock().unwrap().console("console_progress", tmp.to_string());
+                    }
                 }
-                self.console("文件上传完成!".into());
                 remote_file.send_eof()?;
                 remote_file.wait_eof()?;
                 remote_file.close()?;
@@ -97,35 +110,54 @@ impl SshUtil {
         }
     }
 
-    // pub fn download_sftp(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
-    //     self.console("开始下载文件！".into());
-    //     let sftp = self.session.as_ref().unwrap().sftp()?;
-    //     let capacity = 1024 * 1024;
-    //     let fs = sftp.open(remote_path)?;
+    pub fn download_sftp(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {
+        let sftp = self.session.as_ref().unwrap().sftp()?;
+        let capacity = 1024 * 1024;
+        let mut fs = sftp.open(remote_path)?;
 
-    //     // let len = fs.stat().unwrap().size.unwrap();
-    //     let mut input_file = std::io::BufReader::with_capacity(capacity, fs);
-    //     let mut fs = OpenOptions::new().create(true).append(true).open(file_path)?;
-    //     std::io::copy(&mut input_file, &mut fs)?;
-    //     Ok(())
-    // }
+        let len = fs.stat()?.size.unwrap();
+        let input_file = std::io::BufReader::with_capacity(capacity, fs);
 
-    // pub fn is_dir(&mut self, path: &Path) -> Result<bool> {
-    //     match self.session.as_ref().unwrap().sftp() {
-    //         Ok(sftp) => {
-    //             let stat = sftp.stat(path)?;
-    //             Ok(stat.is_dir())
-    //         }
-    //         Err(err) => Err(anyhow!(err.to_string()))
-    //     }
-    // }
+        let file_name = remote_path.file_name().unwrap().to_str().unwrap();
+        let pb = ProgressBar::new(len.clone());
+        pb.set_style(ProgressStyle::default_bar()
+            .template(&*format!("{0} {{spinner:.green}} [{{elapsed_precise}}] [{{bar:40.cyan/blue}}] {{bytes}}/{{total_bytes}} ({{bytes_per_sec}}, {{eta}})", file_name))
+            .progress_chars("#>-"));
+        let mut fs = OpenOptions::new().create(true).append(true).open(file_path)?;
+        std::io::copy(&mut pb.wrap_read(input_file), &mut fs)?;
+        pb.finish();
+        Ok(())
+    }
 
-    pub fn check_dir(&mut self, path: &Path) -> Result<()> {
+    pub fn file_list(&mut self, path: &Path) -> Result<Vec<(PathBuf, FileStat)>> {
+        match self.session.as_ref().unwrap().sftp() {
+            Ok(sftp) => {
+                Ok(sftp.readdir(path)?)
+            }
+            Err(err) => Err(anyhow!(err.to_string()))
+        }
+    }
+
+    pub fn check_is_dir(&mut self, path: &Path) -> Result<bool> {
+        match self.session.as_ref().unwrap().sftp() {
+            Ok(sftp) => {
+                let stat = sftp.stat(path)?;
+                Ok(stat.is_dir())
+            }
+            Err(err) => Err(anyhow!(err.to_string()))
+        }
+    }
+
+    pub fn check_remote_dir(&mut self, path: &Path, create: bool) -> Result<()> {
         match self.session.as_ref().unwrap().sftp() {
             Ok(sftp) => {
                 match sftp.stat(path) {
                     Err(_e) => {
-                        Ok(sftp.mkdir(path, 0o644)?)
+                        if create {
+                            Ok(self.exec(format!("mkdir -p {}", path.to_str().unwrap()))?)
+                        } else {
+                            Err(anyhow!("远程目录不存在！"))
+                        }
                     }
                     Ok(_stat) => Ok(())
                 }
