@@ -67,6 +67,30 @@ async fn main() {
             Err(err) => SERVICE.lock().unwrap().console("error", err.to_string())
         }
     }
+
+    fn show_ui() {
+        let menu = Menu::new().add_submenu(Submenu::new("编辑", Menu::new()
+            .add_native_item(MenuItem::Copy)
+            .add_native_item(MenuItem::Paste)
+            .add_native_item(MenuItem::Cut)
+            .add_native_item(MenuItem::Redo)
+            .add_native_item(MenuItem::SelectAll)
+            .add_native_item(MenuItem::Undo)
+            .add_native_item(MenuItem::Quit)));
+        tauri::Builder::default()
+            .on_page_load(move |win, _| {
+                win.set_title("Rookie的工具箱").unwrap();
+                let position = Position::Logical(LogicalPosition { x: 100 as f64, y: 100 as f64 });
+                win.set_position(position).unwrap();
+                let size = Size::Logical(LogicalSize { width: 1440 as f64, height: 800 as f64 });
+                win.set_size(size).unwrap();
+                SERVICE.lock().unwrap().set_win(win.clone());
+            })
+            .menu(menu)
+            .invoke_handler(tauri::generate_handler![exec, exit])
+            .run(tauri::generate_context!())
+            .expect("error while running tauri application");
+    }
     match matchs.subcommand_name() {
         Some(sub) => {
             match sub {
@@ -81,27 +105,7 @@ async fn main() {
                     ssh_login(ssh.value_of("server")).await;
                 }
                 "mgr" => {
-                    let menu = Menu::new().add_submenu(Submenu::new("编辑", Menu::new()
-                        .add_native_item(MenuItem::Copy)
-                        .add_native_item(MenuItem::Paste)
-                        .add_native_item(MenuItem::Cut)
-                        .add_native_item(MenuItem::Redo)
-                        .add_native_item(MenuItem::SelectAll)
-                        .add_native_item(MenuItem::Undo)
-                        .add_native_item(MenuItem::Quit)));
-                    tauri::Builder::default()
-                        .on_page_load(move |win, _| {
-                            win.set_title("Rookie的工具箱").unwrap();
-                            let position = Position::Logical(LogicalPosition { x: 100 as f64, y: 100 as f64 });
-                            win.set_position(position).unwrap();
-                            let size = Size::Logical(LogicalSize { width: 1440 as f64, height: 800 as f64 });
-                            win.set_size(size).unwrap();
-                            SERVICE.lock().unwrap().set_win(win.clone());
-                        })
-                        .menu(menu)
-                        .invoke_handler(tauri::generate_handler![exec, exit])
-                        .run(tauri::generate_context!())
-                        .expect("error while running tauri application");
+                    show_ui();
                 }
                 "scp" => {
                     let scp = matchs.subcommand_matches("scp").expect("参数错误！");
@@ -131,6 +135,7 @@ async fn main() {
         }
         None => {
             // ssh_login(None).await
+            show_ui()
         }
     };
 }

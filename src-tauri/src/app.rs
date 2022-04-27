@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::future::Future;
 use std::ops::Add;
 use std::sync::mpsc;
 
@@ -70,7 +71,8 @@ pub async fn init(rb: &Rbatis) -> Result<()> {
     Ok(())
 }
 
-pub fn unwrap<T: serde::Serialize + core::fmt::Debug>(method: MethodEvent, data: Option<T>) -> Result<String> {
+pub fn unwrap<T: serde::Serialize + core::fmt::Debug>(method: MethodEvent, future: impl Future<Output=Option<T>>) -> Result<String> {
+    let data = tauri::async_runtime::block_on(future);
     let resp: ResponseMsg<T> = ResponseMsg { method, code: 200, data, msg: None };
     match serde_json::to_string(&resp) {
         Ok(json) => Ok(json),
@@ -119,7 +121,7 @@ pub enum MethodEvent {
     GenTemplate,
     Envs,
     SaveEnv,
-    RemoveEnv
+    RemoveEnv,
 }
 
 fn exec_method(params: RequestParam) -> Result<String> {
@@ -147,8 +149,8 @@ fn exec_method(params: RequestParam) -> Result<String> {
         MethodEvent::SaveGenSetting => unwrap(params.method, super::SERVICE.lock().unwrap().save_gen_setting()),
         MethodEvent::TableAndTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().table_and_template()),
         MethodEvent::GenTemplate => unwrap(params.method, super::SERVICE.lock().unwrap().gen_template()),
-        MethodEvent::Envs=> unwrap(params.method, super::SERVICE.lock().unwrap().envs()),
-        MethodEvent::SaveEnv=> unwrap(params.method, super::SERVICE.lock().unwrap().save_env()),
-        MethodEvent::RemoveEnv=> unwrap(params.method, super::SERVICE.lock().unwrap().remove_env())
+        MethodEvent::Envs => unwrap(params.method, super::SERVICE.lock().unwrap().envs()),
+        MethodEvent::SaveEnv => unwrap(params.method, super::SERVICE.lock().unwrap().save_env()),
+        MethodEvent::RemoveEnv => unwrap(params.method, super::SERVICE.lock().unwrap().remove_env())
     }
 }

@@ -35,6 +35,9 @@ export default {
         getData(){
             this.invoke('DeploySetting', (rep)=>{
                 this.commands = rep ? rep : []
+                if (this.commands.length == 0){
+                    this.commands.push({profile: 'test', remote_dir: '', target_name: '', before: '', after: ''})
+                }
                 if(rep && rep.length > 0){
                     this.profile = rep[0].profile
                 }

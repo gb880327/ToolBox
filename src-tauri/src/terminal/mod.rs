@@ -8,7 +8,6 @@ use dialoguer::{MultiSelect, Select};
 use dialoguer::console::{Style, style};
 use dialoguer::theme::ColorfulTheme;
 use ssh2::FileStat;
-
 use crate::app::Asset;
 use crate::cmd::ssh::SshUtil;
 use crate::model::{Command, Project, Server};

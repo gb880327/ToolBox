@@ -135,7 +135,7 @@ export default {
 .tips-content {
   padding: 5px 0;
   font-size: 14px;
-  color:#303133;
+  color:#FFFFFF;
 }
 .tips-content .title{
   display: block;
@@ -153,7 +153,7 @@ export default {
   margin: 0;
 }
 .helpTips a{
-  color: black;
+  color: #FFFFFF;
 }
 .helpTips .sub{
   margin-left:12px;
