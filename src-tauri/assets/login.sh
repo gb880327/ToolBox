@@ -8,6 +8,7 @@ expect -c '
       send "{pwd}\r"
       exp_continue
   } "*\[#\\\$]" {
+      {cmd}
       interact
   } "* to host" {
       send_user "Connect faild!"

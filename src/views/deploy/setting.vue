@@ -3,6 +3,10 @@
         <el-tabs slot="content" type="border-card" v-model="profile" editable @edit="handleTabsEdit">
             <el-tab-pane v-for="(item,i) of commands" :key="item.profile" :name="item.profile" :label="item.profile">
                 <el-form>
+                    <el-form-item label="是否需要上传文件：" prop="need_upload">
+                        <el-switch v-model="item.need_upload" active-text="需要" inactive-text="不需要" :active-value="1" :inactive-value="0"></el-switch>
+                        <span style="padding-left:20px;">(例如docker镜像部署不需要上传jar包)</span>
+                    </el-form-item>
                     <el-form-item label="部署路径：(remote_dir)" prop="remote_dir">
                         <el-input v-model="item.remote_dir" size="small" autocomplete=”off”></el-input>
                     </el-form-item>
@@ -36,7 +40,7 @@ export default {
             this.invoke('DeploySetting', (rep)=>{
                 this.commands = rep ? rep : []
                 if (this.commands.length == 0){
-                    this.commands.push({profile: 'test', remote_dir: '', target_name: '', before: '', after: ''})
+                    this.commands.push({profile: 'test', remote_dir: '', target_name: '', before: '', after: '', need_upload: 1})
                 }
                 if(rep && rep.length > 0){
                     this.profile = rep[0].profile
@@ -73,7 +77,8 @@ export default {
                         remote_dir: '',
                         target_name: '',
                         before: '',
-                        after: ''
+                        after: '',
+                        need_upload: 1
                     })
                     this.profile = rep.value
                 })

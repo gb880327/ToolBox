@@ -57,6 +57,9 @@
                          <el-button slot="suffix" size="mini" type="primary" plain @click="chooseHandler">选择</el-button>
                     </el-input>
                 </el-form-item>
+                <el-form-item label="登陆后执行命令：" prop="command">
+                    <el-input v-model="form.command"></el-input>
+                </el-form-item>
             </el-form>
         </myDialog>
     </div>
@@ -78,7 +81,8 @@ export default {
                 user: "",
                 password: "",
                 private_key: "",
-                auth_type: 0
+                auth_type: 0,
+                command: ""
             },
             rules: {
                 name: [{ required: true, message: "请输入服务器名称", trigger: "blur" }],

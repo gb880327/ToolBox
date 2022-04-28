@@ -47,7 +47,7 @@ async fn main() {
         .subcommand(SubCommand::with_name("list").about("查询服务器列表"));
 
     let ssh_arg = SubCommand::with_name("ssh").about("登陆服务器")
-        .arg(Arg::with_name("server").long("server").short("s").value_name("String").help("服务器标签"));
+        .arg(Arg::with_name("server"));
 
     let scp_arg = SubCommand::with_name("scp").arg(Arg::with_name("file")).arg(Arg::with_name("path")).about("文件上传与下载");
 
@@ -122,7 +122,7 @@ async fn main() {
                         Some(sub_cmd) => {
                             match sub_cmd {
                                 "list" => terminal::list_server().await.unwrap(),
-                                _ => {}
+                                _ => println!("参数错误！请查看帮助文档. rt --help")
                             }
                         }
                         None => terminal::list_server().await.unwrap()
@@ -135,7 +135,7 @@ async fn main() {
         }
         None => {
             ssh_login(None).await
-            //show_ui()
+            // show_ui()
         }
     };
 }

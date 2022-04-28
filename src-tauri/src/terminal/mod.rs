@@ -61,6 +61,13 @@ fn exec_ssh(server: &Server) -> Result<()> {
                                                                    server.host.as_ref().unwrap()))
                     .replace("{pwd}", "");
             }
+            if server.command.as_ref().unwrap().is_empty() {
+                ssh_script = ssh_script.replace("{cmd}", "");
+            } else {
+                let cmd = server.command.as_ref().unwrap();
+                let cmd = cmd.replace("{", "\\{").replace("}", "\\}");
+                ssh_script = ssh_script.replace("{cmd}", &*format!("send \"{}\\r\"", cmd));
+            }
             let mut spawn = process::Command::new("sh").arg("-c").arg(ssh_script).spawn()?;
             spawn.wait().expect("运行ssh脚本错误！");
             Ok(())

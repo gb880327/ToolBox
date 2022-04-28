@@ -36,7 +36,8 @@ CREATE TABLE "command" (
   "remote_dir" TEXT,
   "before" TEXT,
   "after" TEXT,
-  "target_name" TEXT
+  "target_name" TEXT,
+  "need_upload" INTEGER
 );
 
 -- ----------------------------
@@ -90,7 +91,8 @@ CREATE TABLE "server" (
   "user" TEXT(120),
   "password" TEXT(120),
   "private_key" TEXT(500),
-  "auth_type" INTEGER(32)
+  "auth_type" INTEGER(32),
+  "command" TEXT(500)
 );
 
 -- ----------------------------

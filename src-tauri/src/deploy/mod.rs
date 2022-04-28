@@ -85,8 +85,11 @@ impl DeployUtil {
                 let file_path = Path::new(source).join(&command.target_name.as_ref().unwrap());
                 let target_path = Path::new(remote_dir);
                 self.ssh.check_remote_dir(target_path, true)?;
-                self.ssh.upload_file(file_path.as_path(), target_path.join(&command.target_name.as_ref().unwrap()).as_path())?;
-                std::fs::remove_file(file_path)?;
+
+                if command.need_upload.unwrap() == 1 {
+                    self.ssh.upload_file(file_path.as_path(), target_path.join(&command.target_name.as_ref().unwrap()).as_path())?;
+                    std::fs::remove_file(file_path)?;
+                }
 
                 let after = DeployUtil::str_to_vec(&command.after.as_ref().unwrap());
                 let after = DeployUtil::replace_cmd(after, source, remote_dir,command.target_name.as_ref().unwrap());

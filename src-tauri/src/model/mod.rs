@@ -30,6 +30,7 @@ pub struct Command {
     pub before: Option<String>,
     pub after: Option<String>,
     pub target_name: Option<String>,
+    pub need_upload: Option<i32>
 }
 
 #[async_trait]
@@ -50,6 +51,7 @@ pub struct Server {
     pub password: Option<String>,
     pub private_key: Option<String>,
     pub auth_type: Option<i64>,
+    pub command: Option<String>
 }
 
 #[async_trait]

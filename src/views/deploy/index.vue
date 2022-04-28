@@ -97,6 +97,7 @@ export default {
                 this.error('请选择部署环境！')
                 return
             }
+            this.$parent.logs = []
             let param = {
                 project: this.projects.find(it=> it.id === this.form.projectId),
                 profile: this.profiles.find(it=> it.id === this.form.profile),
