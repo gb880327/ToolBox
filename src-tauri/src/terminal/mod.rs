@@ -46,11 +46,13 @@ fn exec_ssh(server: &Server) -> Result<()> {
                 Cow::Owned(bytes) => String::from_utf8(bytes.into()).expect("ssh登陆脚本读取错误！"),
             };
             if server.auth_type == Some(0 as i64) {
+                let pwd = server.password.as_ref().unwrap();
+                let pwd = pwd.replace("{", "\\{").replace("}", "\\}");
                 ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -p {} {}@{}",
                                                                    server.port.as_ref().unwrap(),
                                                                    server.user.as_ref().unwrap(),
                                                                    server.host.as_ref().unwrap()))
-                    .replace("{pwd}", &*server.password.as_ref().unwrap());
+                    .replace("{pwd}", &pwd);
             } else {
                 ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -i {} -p {} {}@{}",
                                                                    server.private_key.as_ref().cloned().unwrap(),

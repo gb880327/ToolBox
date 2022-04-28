@@ -134,8 +134,8 @@ async fn main() {
             }
         }
         None => {
-            // ssh_login(None).await
-            show_ui()
+            ssh_login(None).await
+            //show_ui()
         }
     };
 }

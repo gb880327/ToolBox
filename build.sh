@@ -2,4 +2,4 @@
 app='toolbox'
 yarn tauri:build
 upx --ultra-brute src-tauri/target/release/$app
-cp -r src-tauri/target/release/$app ~/Users/rookie/mybash/workshell/rt
+mv src-tauri/target/release/$app ~/Users/rookie/mybash/workshell/rt
