@@ -2,9 +2,11 @@
 expect -c '
   set timeout 30
   spawn {ssh}
-  expect_before ".*yes/no.*" { send "yes\r" }
   expect \
-  " password:?" {
+  "*yes/no*" {
+      send "yes\r"
+      exp_continue
+  } " password:?" {
       send "{pwd}\r"
       exp_continue
   } "*\[#\\\$]" {

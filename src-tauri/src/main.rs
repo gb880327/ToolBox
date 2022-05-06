@@ -44,7 +44,8 @@ async fn main() {
     app::init(&RB).await.unwrap();
 
     let server_arg = SubCommand::with_name("server").about("服务器管理")
-        .subcommand(SubCommand::with_name("list").about("查询服务器列表"));
+        .subcommand(SubCommand::with_name("list").about("查询服务器列表"))
+        .subcommand(SubCommand::with_name("rm").arg(Arg::with_name("serverName")).about("删除服务器"));
 
     let ssh_arg = SubCommand::with_name("ssh").about("登陆服务器")
         .arg(Arg::with_name("server"));
@@ -122,6 +123,10 @@ async fn main() {
                         Some(sub_cmd) => {
                             match sub_cmd {
                                 "list" => terminal::list_server().await.unwrap(),
+                                "rm"=> {
+                                    let server_name = server.subcommand_matches("rm").expect("参数错误！").value_of("serverName").expect("参数错误！");
+                                    terminal::remove_server(server_name).await.expect("删除服务器失败！");
+                                },
                                 _ => println!("参数错误！请查看帮助文档. rt --help")
                             }
                         }

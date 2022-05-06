@@ -4,12 +4,13 @@ use std::path::{Path, PathBuf};
 use std::process;
 
 use anyhow::{anyhow, Result};
-use dialoguer::{MultiSelect, Select};
+use dialoguer::{Confirm, MultiSelect, Select};
 use dialoguer::console::{Style, style};
 use dialoguer::theme::ColorfulTheme;
 use ssh2::FileStat;
 use crate::app::Asset;
 use crate::cmd::ssh::SshUtil;
+use crate::database::{BaseModel, new_wrapper};
 use crate::model::{Command, Project, Server};
 use crate::model::service::DeployInfo;
 use crate::service::Service;
@@ -61,12 +62,18 @@ fn exec_ssh(server: &Server) -> Result<()> {
                                                                    server.host.as_ref().unwrap()))
                     .replace("{pwd}", "");
             }
-            if server.command.as_ref().unwrap().is_empty() {
-                ssh_script = ssh_script.replace("{cmd}", "");
-            } else {
-                let cmd = server.command.as_ref().unwrap();
-                let cmd = cmd.replace("{", "\\{").replace("}", "\\}");
-                ssh_script = ssh_script.replace("{cmd}", &*format!("send \"{}\\r\"", cmd));
+            match server.command.as_ref() {
+                Some(command) => {
+                    if !command.is_empty() {
+                        let cmd = command.replace("{", "\\{").replace("}", "\\}");
+                        ssh_script = ssh_script.replace("{cmd}", &*format!("send \"{}\\r\"", cmd));
+                    } else {
+                        ssh_script = ssh_script.replace("{cmd}", "");
+                    }
+                }
+                None => {
+                    ssh_script = ssh_script.replace("{cmd}", "");
+                }
             }
             let mut spawn = process::Command::new("sh").arg("-c").arg(ssh_script).spawn()?;
             spawn.wait().expect("运行ssh脚本错误！");
@@ -289,5 +296,28 @@ fn check_path(path: String) -> PathBuf {
         std::env::current_dir().unwrap().join(path.replace("./", ""))
     } else {
         PathBuf::from(path)
+    }
+}
+
+pub async fn remove_server(server_name: &str) -> Result<()> {
+    if Confirm::new().with_prompt("确定要删除此服务器配置？").interact()? {
+        match super::SERVICE.lock().unwrap().find_server(server_name).await {
+            Some(server) => {
+                match Server::remove(&super::RB, Some(new_wrapper().eq("id", server.id.as_ref().unwrap()))).await {
+                    Some(i) => {
+                        if i > 0 {
+                            println!("服务器 {} 已删除！", server_name);
+                            Ok(())
+                        } else {
+                            Err(anyhow!("服务器配置删除失败！"))
+                        }
+                    }
+                    None => Err(anyhow!("服务器配置删除失败！"))
+                }
+            }
+            None => Err(anyhow!("服务器配置不存在！"))
+        }
+    } else {
+        Ok(())
     }
 }
