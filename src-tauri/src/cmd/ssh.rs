@@ -64,7 +64,8 @@ impl SshUtil {
         channel.wait_close()?;
 
         let status_code = channel.exit_status()?;
-        Ok(status(status_code)?)
+        // Ok(status(status_code)?)
+        Ok(())
     }
 
     pub fn upload_file(&mut self, file_path: &Path, remote_path: &Path) -> Result<()> {

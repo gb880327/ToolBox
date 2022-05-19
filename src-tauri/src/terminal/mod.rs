@@ -7,6 +7,7 @@ use anyhow::{anyhow, Result};
 use dialoguer::{Confirm, MultiSelect, Select};
 use dialoguer::console::{Style, style};
 use dialoguer::theme::ColorfulTheme;
+use regex::Regex;
 use ssh2::FileStat;
 use crate::app::Asset;
 use crate::cmd::ssh::SshUtil;
@@ -46,9 +47,10 @@ fn exec_ssh(server: &Server) -> Result<()> {
                 Cow::Borrowed(bytes) => String::from_utf8(bytes.into()).expect("ssh登陆脚本读取错误！"),
                 Cow::Owned(bytes) => String::from_utf8(bytes.into()).expect("ssh登陆脚本读取错误！"),
             };
+            let reg = Regex::new("[\\\\|\"|'|$|&|*|?|~|`|!|#|\\||{|}|;|<|>|^]").expect("正则表达式错误！");
             if server.auth_type == Some(0 as i64) {
                 let pwd = server.password.as_ref().unwrap();
-                let pwd = pwd.replace("{", "\\{").replace("}", "\\}");
+                let pwd = reg.replace_all(pwd, "\\$0");
                 ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -p {} {}@{}",
                                                                    server.port.as_ref().unwrap(),
                                                                    server.user.as_ref().unwrap(),
@@ -65,7 +67,7 @@ fn exec_ssh(server: &Server) -> Result<()> {
             match server.command.as_ref() {
                 Some(command) => {
                     if !command.is_empty() {
-                        let cmd = command.replace("{", "\\{").replace("}", "\\}");
+                        let cmd = reg.replace_all(command, "\\$0");
                         ssh_script = ssh_script.replace("{cmd}", &*format!("send \"{}\\r\"", cmd));
                     } else {
                         ssh_script = ssh_script.replace("{cmd}", "");

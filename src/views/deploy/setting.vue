@@ -1,5 +1,5 @@
 <template>
-    <myDialog title="项目部署设置" ref="dialog" @ok="ok" @cancel="cancel" width="800px" btnWidth="48%">
+    <myDialog title="项目部署设置" ref="dialog" @ok="ok" @cancel="cancel" width="80%" btnWidth="48%">
         <el-tabs slot="content" type="border-card" v-model="profile" editable @edit="handleTabsEdit">
             <el-tab-pane v-for="(item,i) of commands" :key="item.profile" :name="item.profile" :label="item.profile">
                 <el-form>
