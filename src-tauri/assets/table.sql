@@ -86,6 +86,7 @@ DROP TABLE IF EXISTS "server";
 CREATE TABLE "server" (
   "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   "name" TEXT(120),
+  "label" TEXT(120),
   "host" TEXT(120),
   "port" INTEGER(32),
   "user" TEXT(120),

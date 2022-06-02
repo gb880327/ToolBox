@@ -45,6 +45,7 @@ impl BaseModel<Command> for Command {
 pub struct Server {
     pub id: Option<i64>,
     pub name: Option<String>,
+    pub label: Option<String>,
     pub host: Option<String>,
     pub port: Option<i64>,
     pub user: Option<String>,

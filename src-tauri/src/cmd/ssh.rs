@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use indicatif::{ProgressBar, ProgressStyle};
 use ssh2::{FileStat, Session};
 
-use super::status;
+// use super::status;
 
 #[derive(Clone)]
 pub struct SshUtil {
@@ -63,7 +63,7 @@ impl SshUtil {
         channel.wait_eof()?;
         channel.wait_close()?;
 
-        let status_code = channel.exit_status()?;
+        let _status_code = channel.exit_status()?;
         // Ok(status(status_code)?)
         Ok(())
     }

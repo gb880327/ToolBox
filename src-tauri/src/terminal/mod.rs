@@ -104,7 +104,7 @@ pub async fn list_server() -> Result<()> {
     match super::SERVICE.lock().unwrap().server_list().await {
         Some(servers) => {
             for server in servers {
-                println!("{} - {}", server.name.as_ref().unwrap(), server.host.as_ref().unwrap());
+                println!("{} - {} - {}", server.name.as_ref().unwrap(), server.label.as_ref().unwrap_or(&String::new()), server.host.as_ref().unwrap());
             }
             Ok(())
         }
@@ -127,7 +127,7 @@ async fn select_server() -> Result<Server> {
     match super::SERVICE.lock().unwrap().server_list().await {
         Some(servers) => {
             let items: Vec<String> = servers.iter().map(|x|
-                format!("{}-{}", x.name.as_ref().unwrap().clone(), x.host.as_ref().unwrap().clone())).collect();
+                format!("{} - {} - {}", x.name.as_ref().unwrap().clone(), x.label.as_ref().unwrap_or(&String::new()).clone(), x.host.as_ref().unwrap().clone())).collect();
             let select = Select::with_theme(&colorful_theme()).items(&items).default(0).with_prompt("请选择服务器(默认选择第一个)").interact()?;
             Ok(servers.get(select).unwrap().clone())
         }
@@ -138,7 +138,7 @@ async fn select_server() -> Result<Server> {
 async fn select_servers() -> Result<Vec<Server>> {
     match super::SERVICE.lock().unwrap().server_list().await {
         Some(servers) => {
-            let items: Vec<String> = servers.iter().map(|x| format!("{}-{}", x.name.as_ref().unwrap().clone(), x.host.as_ref().unwrap().clone())).collect();
+            let items: Vec<String> = servers.iter().map(|x| format!("{} - {} - {}", x.name.as_ref().unwrap().clone(), x.label.as_ref().unwrap_or(&String::new()).clone(), x.host.as_ref().unwrap().clone())).collect();
             let mut select: Vec<usize> = MultiSelect::with_theme(&colorful_theme()).items(&items).with_prompt("请选择目标服务器").interact()?;
             while select.is_empty() {
                 select = MultiSelect::with_theme(&colorful_theme()).items(&items).with_prompt("请选择目标服务器").interact()?;

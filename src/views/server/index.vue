@@ -6,6 +6,7 @@
         <el-table :data="data">
             <el-table-column type="index" width="50" label="编号"></el-table-column>
             <el-table-column property="name" label="服务器名称" align="center"></el-table-column>
+            <el-table-column property="label" label="服务器标签" align="center"></el-table-column>
             <el-table-column property="host" label="服务器地址" align="center"></el-table-column>
             <el-table-column property="port" label="服务器端口" align="center"></el-table-column>
             <el-table-column property="user" label="用户名" align="center"></el-table-column>
@@ -33,6 +34,9 @@
             <el-form slot="content" :model="form" :rules="rules" ref="serverForm" label-width="150px">
                 <el-form-item label="服务器名称：" prop="name">
                     <el-input v-model="form.name"></el-input>
+                </el-form-item>
+                <el-form-item label="服务器标签：" prop="label">
+                    <el-input v-model="form.label"></el-input>
                 </el-form-item>
                 <el-form-item label="服务器地址：" prop="host">
                     <el-input v-model="form.host"></el-input>
@@ -76,6 +80,7 @@ export default {
             total: 0,
             form: {
                 name: "",
+                label: "",
                 host: "",
                 port: 22,
                 user: "",
