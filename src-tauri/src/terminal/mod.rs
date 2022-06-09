@@ -47,7 +47,7 @@ fn exec_ssh(server: &Server) -> Result<()> {
                 Cow::Borrowed(bytes) => String::from_utf8(bytes.into()).expect("ssh登陆脚本读取错误！"),
                 Cow::Owned(bytes) => String::from_utf8(bytes.into()).expect("ssh登陆脚本读取错误！"),
             };
-            let reg = Regex::new("[\\\\|\"|'|$|&|*|?|~|`|!|#|\\||{|}|;|<|>|^]").expect("正则表达式错误！");
+            let reg = Regex::new("[\\[|\\]\\\\|\"|'|$|&|*|?|~|`|!|#|\\||{|}|;|<|>|^]").expect("正则表达式错误！");
             if server.auth_type == Some(0 as i64) {
                 let pwd = server.password.as_ref().unwrap();
                 let pwd = reg.replace_all(pwd, "\\$0");
