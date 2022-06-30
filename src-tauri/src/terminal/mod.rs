@@ -126,8 +126,7 @@ async fn select_project() -> Result<Project> {
 async fn select_server() -> Result<Server> {
     match super::SERVICE.lock().unwrap().server_list().await {
         Some(servers) => {
-            let items: Vec<String> = servers.iter().map(|x|
-                format!("{} - {} - {}", x.name.as_ref().unwrap().clone(), x.label.as_ref().unwrap_or(&String::new()).clone(), x.host.as_ref().unwrap().clone())).collect();
+            let items = get_label(&servers);
             let select = Select::with_theme(&colorful_theme()).items(&items).default(0).with_prompt("请选择服务器(默认选择第一个)").interact()?;
             Ok(servers.get(select).unwrap().clone())
         }
@@ -138,7 +137,7 @@ async fn select_server() -> Result<Server> {
 async fn select_servers() -> Result<Vec<Server>> {
     match super::SERVICE.lock().unwrap().server_list().await {
         Some(servers) => {
-            let items: Vec<String> = servers.iter().map(|x| format!("{} - {} - {}", x.name.as_ref().unwrap().clone(), x.label.as_ref().unwrap_or(&String::new()).clone(), x.host.as_ref().unwrap().clone())).collect();
+            let items = get_label(&servers);
             let mut select: Vec<usize> = MultiSelect::with_theme(&colorful_theme()).items(&items).with_prompt("请选择目标服务器").interact()?;
             while select.is_empty() {
                 select = MultiSelect::with_theme(&colorful_theme()).items(&items).with_prompt("请选择目标服务器").interact()?;
@@ -151,6 +150,11 @@ async fn select_servers() -> Result<Vec<Server>> {
         }
         None => Err(anyhow!("请添加服务器信息！"))
     }
+}
+
+fn get_label(servers: &Vec<Server>) -> Vec<String> {
+    let items: Vec<String> = servers.iter().map(|x| format!("{} - {} - {}", x.name.as_ref().unwrap().clone(), x.label.as_ref().unwrap_or(&String::new()).clone(), x.host.as_ref().unwrap().clone())).collect();
+    items
 }
 
 async fn select_profile(project_id: i64) -> Result<Command> {
