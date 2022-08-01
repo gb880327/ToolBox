@@ -26,3 +26,14 @@ pub struct GenInfo {
     pub tables: Vec<Table>,
     pub templates: Vec<TemplateInfo>
 }
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TemplateTree {
+    pub id: i64,
+    pub label: String,
+    pub is_template: bool,
+    pub language: Option<String>,
+    pub content: Option<String>,
+    pub category_id: Option<i64>,
+    pub children: Vec<TemplateTree>
+}
