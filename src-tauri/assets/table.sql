@@ -122,4 +122,13 @@ CREATE TABLE "env" (
   "value" TEXT
 );
 
+DROP TABLE IF EXISTS "quick_deploy";
+CREATE TABLE "quick_deploy" (
+    "id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT,
+    "project" INTEGER,
+    "profile" INTEGER,
+    "server" TEXT
+);
+
 PRAGMA foreign_keys = true;

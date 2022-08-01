@@ -163,3 +163,19 @@ impl BaseModel<Env> for Env {
         self.clone()
     }
 }
+
+#[derive(CRUDTable, Debug, Clone, Deserialize, Serialize)]
+pub struct QuickDeploy {
+    pub id: Option<i64>,
+    pub name: Option<String>,
+    pub project: Option<i64>,
+    pub profile: Option<i64>,
+    pub server: Option<String>
+}
+
+#[async_trait]
+impl BaseModel<QuickDeploy> for QuickDeploy {
+    fn meta(&mut self) -> QuickDeploy {
+        self.clone()
+    }
+}

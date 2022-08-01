@@ -118,7 +118,7 @@ export default {
                 this.error('请选择文件目录！')
                 return
             }
-            if(this.form.template.filter(it=> !it.template_id || !it.file_path || !it.file_name) > 0){
+            if(this.form.template.filter(it=> !it.template_id || !it.file_path || !it.file_name).length > 0){
                 this.error('请填写完整的模板配置信息！')
                 return
             }
