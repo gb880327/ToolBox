@@ -7,7 +7,7 @@
         "distDir": "../dist",
         "devPath": "http://localhost:8080/",
         "beforeDevCommand": "",
-        "beforeBuildCommand": ""
+        "beforeBuildCommand": "yarn build"
     },
     "tauri": {
         "bundle": {
@@ -54,7 +54,7 @@
             "width": 800,
             "height": 600,
             "resizable": true,
-            "fullscreen": true
+            "fullscreen": false
         }],
         "security": {
             "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: 'unsafe-eval' 'unsafe-inline' 'self' img-src: 'self'"

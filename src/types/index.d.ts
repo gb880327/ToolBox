@@ -74,3 +74,24 @@ interface Env {
     name: string,
     value: string
 }
+
+interface TableInfo {
+    name: string,
+    org_name: string,
+    comment: string,
+    column: Array<Column>
+}
+
+interface Column {
+    name: string,
+    field_name: string,
+    data_type: string,
+    field_type: string,
+    key: string,
+    comment: string
+}
+
+interface MsgNode {
+    msg: string,
+    type: number
+}

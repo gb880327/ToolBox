@@ -1,5 +1,5 @@
 <template>
-  <el-menu :default-active="activeIndex" mode="horizontal" @select="handleSelect">
+  <el-menu :default-active="activeIndex" mode="horizontal" :ellipsis="false" @select="handleSelect">
     <el-menu-item index="/">
       <template #title>
         <el-icon>
@@ -58,6 +58,12 @@
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { Platform, Setting, Document, Grid, Refrigerator, CaretRight } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import { Event, listen } from "@tauri-apps/api/event";
+import utils from '@/libs/utils'
+
+listen('error', (event: Event<string>)=> {
+    utils.error(event.payload)
+})
 
 const state = reactive({
   height: window.innerHeight - 100

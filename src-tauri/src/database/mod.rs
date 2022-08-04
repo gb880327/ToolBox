@@ -1,3 +1,5 @@
+pub(crate) mod mysql;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use rbatis::{DriverType, Error};
@@ -10,11 +12,13 @@ use serde::Deserialize;
 
 use crate::model::{Column, Table};
 
-#[sql(super::MYSQL, "select table_name as org_name, table_comment as comment from information_schema.tables where table_schema = ?")]
-pub async fn table_list(_db: &str) -> Result<Vec<Table>, Error> { todo!() }
 
-#[sql(super::MYSQL, "select column_name as field_name, data_type as data_type, column_key as `key`, column_comment as comment from information_schema.columns where table_schema = ? and table_name = ?")]
-pub async fn table_column(_db_name: &str, _table: &str) -> Result<Vec<Column>, Error> { todo!() }
+// #[sql(super::MYSQL, "select table_name as org_name, table_comment as comment from information_schema.tables where table_schema = ?")]
+// pub async fn table_list(db: &str) -> Result<Vec<Table>, Error> { todo!() }
+
+// #[sql(super::MYSQL, "select column_name as field_name, data_type as data_type, column_key as `key`, column_comment as comment from information_schema.columns where table_schema = ? and table_name = ?")]
+// pub async fn table_column(_db_name: &str, _table: &str) -> Result<Vec<Column>, Error> { todo!() }
+
 
 pub async fn exec_sql(rb: &Rbatis, sql: &str, args: Option<Vec<Bson>>) -> Result<u64, Error> {
 	let result = match args {
@@ -109,5 +113,10 @@ pub trait BaseModel<T: CRUDTable + for<'de> Deserialize<'de>> {
 			Err(_err) => Some(0)
 		}
 	}
+}
 
+#[async_trait]
+pub trait DbUtil {
+	async fn table_list(&mut self, db: &str)-> Result<Vec<Table>, Error>;
+	async fn table_column(&mut self, db: &str, table: &str)->Result<Vec<Column>, Error>;
 }

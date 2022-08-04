@@ -2,7 +2,7 @@
     <div class="inline-tool">
         <el-button type="primary" @click="addQuick" size="small">新增</el-button>
         <el-button type="danger" size="small" @click="removeQuick" :disabled="state.form.id < 0">删除</el-button>
-        <el-button type="success" size="small" :disabled="state.form.id < 0">部署</el-button>
+        <el-button type="success" size="small" :disabled="state.form.id < 0" @click="exec">部署</el-button>
     </div>
     <el-row :gutter="20" class="custom-row">
         <el-col :span="4" class="border-right custom-col">
@@ -45,10 +45,12 @@
             </el-form>
         </el-col>
     </el-row>
+    <deploy-exec ref="deployExecRef"></deploy-exec>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, inject, watch, nextTick } from 'vue'
+import { ref, reactive, inject } from 'vue'
 import type { FormInstance } from 'element-plus'
+import DeployExec from '@/components/deploy_exec.vue'
 import utils from '@/libs/utils'
 
 interface TreeNode {
@@ -58,7 +60,7 @@ interface TreeNode {
     profile: number,
     server: string
 }
-
+const deployExecRef = ref()
 const treeRef = ref()
 const run = inject<Function>('invoke', ()=> {})
 const formRef = ref<FormInstance>()
@@ -116,6 +118,7 @@ const getData = ()=> {
 }
 getData()
 const projectChange = (val)=> {
+    state.form.profile = ''
     run('DeploySetting', (rep)=> {
         state.profiles = rep
         if(rep && rep.length > 0) {
@@ -132,12 +135,14 @@ const addQuick = ()=> {
     state.form = { id: -1, name: '', project: '', profile: '', server: [] }
 }
 const treeNodeClick = async (data: any)=> {
-    state.form.id = data.id
-    state.form.name = data.label
-    state.form.project = data.project
-    state.form.profile = data.profile
-    projectChange(data.project)
-    state.form.server = data.server ? data.server.split('|').map(it=> parseInt(it)) : []
+    if(data.id > 0){
+        state.form.id = data.id
+        state.form.name = data.label
+        state.form.project = data.project
+        state.form.profile = data.profile
+        projectChange(data.project)
+        state.form.server = data.server ? data.server.split('|').map(it=> parseInt(it)) : []
+    }
 }
 const submitForm = async (formEl)=> {
     if (!formEl) return
@@ -173,6 +178,11 @@ const removeQuick = ()=> {
                 utils.error('删除失败！')
             }
         }, {id: state.form.id})
+    })
+}
+const exec = ()=> {
+    utils.confirm('确认部署该配置？', ()=> {
+        deployExecRef.value?.show(state.form.name ,{project: state.form.project, profile: state.form.profile, server: state.form.server.join('|')})
     })
 }
 </script>

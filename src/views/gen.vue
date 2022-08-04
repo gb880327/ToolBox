@@ -87,6 +87,10 @@ const setData = (projectId)=> {
             state.datasource = rep.datasource
             state.output = rep.output
             state.template = JSON.parse(rep.template)
+        } else {
+            state.datasource = ''
+            state.output = ''
+            state.template = []
         }
     }, {projectId: projectId})
 }

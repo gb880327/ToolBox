@@ -2,7 +2,7 @@
   <div class="tool">
     <el-button type="primary" @click="addProject" size="small">新增</el-button>
     <el-button type="danger" size="small" @click="removeProject" :disabled="state.selectNode.id < 0">删除</el-button>
-    <el-button type="info" size="small" :disabled="state.selectNode.id < 0">生成代码</el-button>
+    <el-button type="info" size="small" :disabled="state.selectNode.id < 0" @click="exec">生成代码</el-button>
   </div>
   <el-row :gutter="20" class="custom-row">
     <el-col :span="4" class="border-right custom-col">
@@ -27,12 +27,14 @@
       </el-tabs>
     </el-col>
   </el-row>
+  <gen-exec ref="genExecRef"></gen-exec>
 </template>
 <script lang="ts" setup>
 import { ref, reactive, inject, nextTick } from "vue";
 import info from "./info.vue";
 import deploy from "./deploy.vue";
 import gen from "./gen.vue";
+import GenExec from "@/components/gen_exec.vue";
 import utils from '@/libs/utils'
 
 interface NodeProp {
@@ -46,6 +48,7 @@ const treeRef = ref()
 const infoRef = ref()
 const deployRef = ref()
 const genRef = ref()
+const genExecRef = ref()
 
 const state = reactive({
   selectNode: {id: -1, name: '', path: ''},
@@ -122,6 +125,10 @@ const removeProject = ()=> {
       }
     }, {id: state.selectNode.id})
   })
+}
+
+const exec = ()=> {
+  genExecRef.value?.show(state.selectNode.id, state.selectNode.name)
 }
 defineExpose([getData])
 </script>
