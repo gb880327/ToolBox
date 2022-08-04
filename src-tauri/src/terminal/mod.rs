@@ -181,7 +181,8 @@ pub async fn deploy() -> Result<()> {
 }
 
 pub async fn quick_deploy() -> Result<()> {
-    match super::SERVICE.lock().unwrap().quick_deploys().await {
+    let quicks = super::SERVICE.lock().unwrap().quick_deploys().await;
+    match quicks {
         Some(quicks) => {
             let items: Vec<String> = quicks.iter().map(|x| x.name.as_ref().unwrap().to_string()).collect();
             let select = Select::with_theme(&colorful_theme()).items(&items).default(0).with_prompt("请选择需要部署的项目(默认选择第一个)").interact()?;
