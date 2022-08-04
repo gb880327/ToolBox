@@ -145,7 +145,7 @@ pub struct Table {
 pub struct Column {
     pub name: Option<String>,
     pub field_name: Option<String>,
-    pub data_type: Option<rbatis::core::types::byte::RbBytes>,
+    pub data_type: Option<rbatis::types::Bytes>,
     pub field_type: Option<String>,
     pub key: Option<String>,
     pub comment: Option<String>,

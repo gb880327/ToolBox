@@ -29,7 +29,6 @@ mod terminal;
 
 lazy_static! {
     static ref RB: Rbatis = Rbatis::new();
-    static ref MYSQL: Rbatis = Rbatis::new();
     static ref SERVICE: Mutex<Service> = Mutex::new(Service::default());
 }
 
@@ -56,7 +55,7 @@ async fn main() {
         .author("Rookie. <gb880327@189.cn>")
         .about("Rookie的工具箱")
         .subcommand(server_arg)
-        .subcommand(SubCommand::with_name("deploy").about("部署应用"))
+        .subcommand(SubCommand::with_name("deploy").about("部署应用").arg(Arg::with_name("manual").short('m').takes_value(false)))
         .subcommand(ssh_arg)
         .subcommand(SubCommand::with_name("mgr").about("管理界面"))
         .subcommand(scp_arg)
@@ -96,9 +95,17 @@ async fn main() {
         Some(sub) => {
             match sub {
                 "deploy" => {
-                    match terminal::deploy().await {
-                        Ok(()) => {}
-                        Err(err) => SERVICE.lock().unwrap().console("error", err.to_string())
+                    let deploy = matchs.subcommand_matches("deploy").expect("命令错误！");
+                    if deploy.contains_id("manual") {
+                        match terminal::deploy().await {
+                            Ok(()) => {}
+                            Err(err) => SERVICE.lock().unwrap().console("error", err.to_string())
+                        }
+                    } else {
+                        match terminal::quick_deploy().await {
+                            Ok(()) => {}
+                            Err(err) => SERVICE.lock().unwrap().console("error", err.to_string())
+                        }
                     }
                 }
                 "ssh" => {
@@ -123,10 +130,10 @@ async fn main() {
                         Some(sub_cmd) => {
                             match sub_cmd {
                                 "list" => terminal::list_server().await.unwrap(),
-                                "rm"=> {
+                                "rm" => {
                                     let server_name = server.subcommand_matches("rm").expect("参数错误！").value_of("serverName").expect("参数错误！");
                                     terminal::remove_server(server_name).await.expect("删除服务器失败！");
-                                },
+                                }
                                 _ => println!("参数错误！请查看帮助文档. rt --help")
                             }
                         }
@@ -139,8 +146,11 @@ async fn main() {
             }
         }
         None => {
-            ssh_login(None).await
-            // show_ui()
+            if cfg!(debug_assertions) {
+                show_ui()
+            } else {
+                ssh_login(None).await
+            }
         }
     };
 }

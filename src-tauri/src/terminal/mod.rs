@@ -13,7 +13,6 @@ use crate::app::Asset;
 use crate::cmd::ssh::SshUtil;
 use crate::database::{BaseModel, new_wrapper};
 use crate::model::{Command, Project, Server};
-use crate::model::service::DeployInfo;
 use crate::service::Service;
 
 fn colorful_theme() -> ColorfulTheme {
@@ -176,17 +175,23 @@ pub async fn deploy() -> Result<()> {
     let project = select_project().await?;
     let servers = select_servers().await?;
     let profile = select_profile(project.id.unwrap()).await?;
-    let deploy_info = DeployInfo { project, servers, profile };
-
-    let envs = super::SERVICE.lock().unwrap().env_list().await;
-    match envs {
-        Some(data) => {
-            let env_list: Vec<String> = data.iter().map(|x| x.value.as_ref().unwrap().to_owned()).collect();
-            Service::deploy_project_comm(deploy_info, env_list)?;
-        }
-        None => Service::deploy_project_comm(deploy_info, Vec::new())?
-    }
+    let ids: Vec<i64> = servers.iter().map(|x| x.id.unwrap()).collect();
+    Service::deploy_project_comm(project.id.unwrap(), profile.id.unwrap(), ids, true).await.unwrap();
     Ok(())
+}
+
+pub async fn quick_deploy() -> Result<()> {
+    match super::SERVICE.lock().unwrap().quick_deploys().await {
+        Some(quicks) => {
+            let items: Vec<String> = quicks.iter().map(|x| x.name.as_ref().unwrap().to_string()).collect();
+            let select = Select::with_theme(&colorful_theme()).items(&items).default(0).with_prompt("请选择需要部署的项目(默认选择第一个)").interact()?;
+            let temp = quicks.get(select).unwrap();
+            let ids: Vec<i64> = temp.server.as_ref().unwrap().split("|").into_iter().map(|x| x.to_string().parse::<i64>().unwrap()).collect();
+            Service::deploy_project_comm(temp.project.unwrap(), temp.profile.unwrap(), ids, true).await.unwrap();
+            Ok(())
+        }
+        None => Ok(())
+    }
 }
 
 fn download_file(ssh: &mut SshUtil, remote: &Path, local: &Path) -> Result<()> {
