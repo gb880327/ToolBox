@@ -28,7 +28,7 @@ impl SshUtil {
             Ok(tcp) => {
                 session.set_tcp_stream(tcp);
                 session.set_compress(true);
-                session.set_timeout(10000);
+                session.set_timeout(30000);
                 session.handshake()?;
                 self.session = Some(session);
                 Ok(())
