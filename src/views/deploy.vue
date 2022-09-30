@@ -1,4 +1,5 @@
 <template>
+    <span class="tips">Tips: 项目目录 - source_dir 部署路径 - remote_dir 部署文件名 - target_name</span>
     <el-tabs v-model="data.currentProfile" type="border-card" editable @edit="handleTabsEdit">
         <el-tab-pane v-for="(item, index) of data.commands" :key="index" :label="item.profile" :name="item.profile">
             <el-form :model="item" label-position="right" label-width="150px" size="default">
@@ -45,10 +46,9 @@ const setData = (projectId)=> {
 const getData =()=> {
     run('DeploySetting', (rep)=> {
         data.commands = rep ? rep : []
-        if(data.commands.length == 0) {
-            data.commands.push({id:-1, profile: 'test', remote_dir: '', target_name: '', before: '', after: '', need_upload: 1, project_id: -1})
-        }
-        data.currentProfile = data.commands[0].profile
+        if(data.commands.length > 0){
+            data.currentProfile = data.commands[0].profile
+        }        
     }, {id : data.projectId})
 }
 const handleTabsEdit = (targetName: string, action: 'remove' | 'add')=> {
@@ -113,5 +113,10 @@ defineExpose({setData})
 <style scoped>
 .submit {
     width: 30%;
+}
+.tips {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 10px;
 }
 </style>
