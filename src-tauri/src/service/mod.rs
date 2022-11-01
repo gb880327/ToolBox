@@ -336,7 +336,6 @@ impl Service {
     pub async fn gen_template(&mut self) -> Option<bool> {
         let gen_info: GenInfo = self.param.as_ref()?.get_bean("genInfo")?;
         let gen_project: GenProject = GenProject::one(&super::RB, new_wrapper().eq("project_id", gen_info.project_id)).await?;
-        let project: Project = Project::one(&super::RB, new_wrapper().eq("id", gen_info.project_id)).await?;
 
         let db_id = gen_project.datasource.clone()?;
         let db_info: DataSource = DataSource::one(&super::RB, new_wrapper().eq("id", db_id)).await?;
@@ -384,8 +383,8 @@ impl Service {
                     std::thread::spawn(move || {
                         let mut template_render = TemplateRender {
                             table: tables,
-                            root_path: project.path.expect("项目路径为空！"),
-                            output: gen_project.output.expect("代码输出路径为空！"),
+                            root_path: gen_project.output.expect("代码输出路径为空！"),
+                            output: gen_project.package.unwrap_or("".into()),
                             templates: template_params,
                         };
                         match template_render.render() {

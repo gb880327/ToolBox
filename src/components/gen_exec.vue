@@ -40,7 +40,7 @@ import { ref, reactive, inject, nextTick } from 'vue'
 import utils from '@/libs/utils'
 import { Event, listen } from "@tauri-apps/api/event";
 
-const height = ref(window.innerHeight - 300)
+const height = ref(window.innerHeight - 100)
 const run = inject<Function>('invoke', ()=> {})
 const showModel = ref(false)
 const title = ref("")

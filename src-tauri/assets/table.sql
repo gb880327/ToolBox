@@ -66,7 +66,8 @@ CREATE TABLE "gen_project" (
   "datasource" INTEGER(11),
   "output" TEXT,
   "template" TEXT,
-  "type_mapping" TEXT
+  "type_mapping" TEXT,
+  "package" TEXT
 );
 
 -- ----------------------------
