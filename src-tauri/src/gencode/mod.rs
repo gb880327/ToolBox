@@ -5,10 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use chrono::prelude::Local;
-use kstring::KString;
-use liquid::{Object};
-use liquid::model::{Array, Value};
-
+use tera::{Context, Tera};
 use java::JavaRender;
 use text::TextRender;
 
@@ -34,9 +31,7 @@ pub struct TemplateRender {
 }
 
 pub trait RenderTemplate {
-    fn render(context: &mut Object, template: TemplateParam, root: String, output: String) -> Result<String> {
-        let liquid = liquid::ParserBuilder::with_stdlib().build()?;
-
+    fn render(context: &mut Context, template: TemplateParam, root: String, output: String) -> Result<String> {
         let path = match output.is_empty() {
             true => Path::new(&root).to_path_buf(),
             false => {
@@ -46,10 +41,10 @@ pub trait RenderTemplate {
         let mut temp_path = path.join(JavaRender::check_path_str(template.file_path));
         JavaRender::check_path(&temp_path)?;
 
-        let file_name = liquid.parse(&template.file_name)?.render(context)?;
+        let file_name = Tera::one_off(&template.file_name, &context, true)?;
         temp_path = temp_path.join(file_name);
 
-        let temp_str = liquid.parse(&template.content)?.render(context)?;
+        let temp_str = Tera::one_off(&template.content, &context, true)?;
         let mut fs = OpenOptions::new().create(true).write(true).open(temp_path.clone())?;
         fs.write_all(temp_str.as_bytes())?;
         Ok(temp_path.to_str().unwrap().to_string())
@@ -85,11 +80,11 @@ impl TemplateRender {
     pub fn render(&mut self) -> Result<()> {
         let date = Local::now().format("%Y-%m-%d %H:%M").to_string();
         for table in self.table.iter_mut() {
-            let mut context = liquid::Object::new();
-            context.insert(KString::from("date"), Value::scalar(date.clone()));
-            context.insert(KString::from("table_name"), Value::scalar(table.org_name.as_ref().unwrap().clone()));
-            context.insert(KString::from("remark"), Value::scalar(table.comment.as_ref().unwrap().clone()));
-            context.insert(KString::from("entity_name"), Value::scalar(table.name.as_ref().unwrap().clone()));
+            let mut context = Context::new();
+            context.insert("date", &date);
+            context.insert("table_name", &table.org_name.as_ref().unwrap());
+            context.insert("remark", &table.comment.as_ref().unwrap());
+            context.insert("entity_name", &table.name.as_ref().unwrap());
             for tp in self.templates.iter_mut() {
                 if tp.lang == "java" {
                     TemplateRender::column_type(&mut context, tp.lang.clone(), table.column.clone());
@@ -110,7 +105,7 @@ impl TemplateRender {
         Ok(())
     }
 
-    fn column_type(context: &mut Object, lang: String, column: Option<Vec<Column>>) {
+    fn column_type(context: &mut Context, lang: String, column: Option<Vec<Column>>) {
         if lang == "java" {
             let mapping = JavaRender::type_mapper().unwrap();
             let mut columns = column.unwrap();
@@ -120,21 +115,22 @@ impl TemplateRender {
                     None => {}
                 }
                 if col.key.as_ref().unwrap() == "PRI" {
-                    context.insert(KString::from("primary_key"), Value::scalar(col.field_name.as_ref().unwrap().clone()));
-                    context.insert(KString::from("pri_type"), Value::scalar(col.field_type.as_ref().unwrap().clone()));
+                    context.insert("primary_key", &col.field_name.as_ref().unwrap());
+                    context.insert("pri_type", &col.field_type.as_ref().unwrap());
                 }
             }
-            let mut arr: Array = Array::new();
-            let mut index = 0;
+            let mut arr = vec![];
             for col in columns.iter() {
-                arr.insert(index, Value::from(liquid::object!(
-                    { "name": col.name.as_ref().unwrap().clone(), "field_name": col.field_name.as_ref().unwrap().clone(),
-                        "data_type": col.field_type.as_ref().unwrap().clone(), "key": col.key.as_ref().unwrap().clone(),
-                        "comment": col.comment.as_ref().unwrap().clone()})));
-                index = index + 1;
+                let mut data = HashMap::new();
+                data.insert("name", col.name.as_ref().unwrap().clone()).unwrap_or_default();
+                data.insert("field_name", col.field_name.as_ref().unwrap().clone()).unwrap_or_default();
+                data.insert("data_type", col.field_type.as_ref().unwrap().clone()).unwrap_or_default();
+                data.insert("key", col.key.as_ref().unwrap().clone()).unwrap_or_default();
+                data.insert("comment", col.comment.as_ref().unwrap().clone()).unwrap_or_default();
+                arr.push(data);
             }
 
-            context.insert(KString::from("fields"), Value::from(arr));
+            context.insert("fields", &arr);
         }
     }
 }

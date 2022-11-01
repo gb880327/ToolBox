@@ -4,9 +4,7 @@ use std::io::Write;
 use std::path::Path;
 
 use anyhow::Result;
-use kstring::KString;
-use liquid::model::Value;
-use liquid::Object;
+use tera::{Context, Tera};
 use super::TemplateParam;
 use super::RenderTemplate;
 pub struct JavaRender();
@@ -19,29 +17,28 @@ fn replace_package(path: String) -> String {
 }
 
 impl RenderTemplate for JavaRender {
-    fn render(context: &mut Object, template: TemplateParam, root: String, output: String) -> Result<String> {
-        let liquid = liquid::ParserBuilder::with_stdlib().build()?;
+    fn render(context: &mut Context, template: TemplateParam, root: String, output: String) -> Result<String> {
 
         let path = match output.is_empty() {
             true => Path::new(&root).to_path_buf(),
             false => {
                 let out_path = JavaRender::check_path_str(output);
                 let base_package = replace_package(out_path.clone());
-                context.insert(KString::from("base_package"), Value::scalar(base_package));
+                context.insert("base_package", &base_package);
                 Path::new(&root).join(out_path)
             }
         };
         let file_path = JavaRender::check_path_str(template.file_path);
         let package = replace_package(file_path.clone());
-        context.insert(KString::from("package"), Value::scalar(package));
+        context.insert("package", &package);
         let mut temp_path = path.join(file_path);
         JavaRender::check_path(&temp_path)?;
 
-        let file_name = liquid.parse(&template.file_name)?.render(context)?;
+        let file_name = Tera::one_off(&template.file_name, &context, true)?;
         temp_path = temp_path.join(file_name);
 
-        let temp_str = liquid.parse(&template.content)?.render(context)?;
-        let mut fs = OpenOptions::new().create(true).write(true).open(temp_path.clone())?;
+        let temp_str = Tera::one_off(&template.content, &context, false)?;
+        let mut fs = OpenOptions::new().create(true).write(true).truncate(true).open(temp_path.clone())?;
         fs.write_all(temp_str.as_bytes())?;
 
         Ok(temp_path.to_str().unwrap().to_string())
