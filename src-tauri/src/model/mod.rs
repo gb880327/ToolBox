@@ -107,6 +107,7 @@ pub struct GenProject {
     pub output: Option<String>,
     pub template: Option<String>,
     pub type_mapping: Option<String>,
+    pub package: Option<String>
 }
 
 #[async_trait]

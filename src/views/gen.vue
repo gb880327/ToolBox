@@ -12,6 +12,9 @@
                 </template>
             </el-input>
         </el-form-item>
+        <el-form-item label="公共目录：" prop="package">
+            <el-input v-model="state.package"></el-input>
+        </el-form-item>
         <el-form-item label="模板：">
             <el-row style="width: 100%;">
                 <el-col :span="6">模板</el-col>
@@ -63,6 +66,7 @@ const state = reactive({
     project_id: -1,
     datasource: '',
     output: '',
+    package: '',
     template: new Array<TemplateItem>()
 })
 const getDs = ()=> {
@@ -86,6 +90,7 @@ const setData = (projectId)=> {
             state.project_id = rep.project_id
             state.datasource = rep.datasource
             state.output = rep.output
+            state.package = rep.package
             state.template = JSON.parse(rep.template)
         } else {
             state.datasource = ''
@@ -121,6 +126,7 @@ const submitForm = ()=> {
         project_id: state.project_id,
         datasource: state.datasource,
         output: state.output,
+        package: state.package,
         template: JSON.stringify(state.template)
     }
     if(state.id > 0) {
