@@ -37,6 +37,13 @@ indicatif="*"
 async-recursion="1.0.0"
 tera = "1.17.1"
 
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
 [features]
 default = [ "custom-protocol" ]
 custom-protocol = [ "tauri/custom-protocol" ]
