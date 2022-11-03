@@ -7,6 +7,7 @@ use anyhow::Result;
 use tera::{Context, Tera};
 use super::TemplateParam;
 use super::RenderTemplate;
+
 pub struct JavaRender();
 
 fn replace_package(path: String) -> String {
@@ -18,17 +19,22 @@ fn replace_package(path: String) -> String {
 
 impl RenderTemplate for JavaRender {
     fn render(context: &mut Context, template: TemplateParam, root: String, output: String) -> Result<String> {
-
         let path = match output.is_empty() {
             true => Path::new(&root).to_path_buf(),
             false => {
-                let out_path = JavaRender::check_path_str(output);
+                let out_path = match output.contains(".") {
+                    true=> output.replace(".", "/"),
+                    false=> JavaRender::check_path_str(output)
+                };
                 let base_package = replace_package(out_path.clone());
                 context.insert("base_package", &base_package);
                 Path::new(&root).join(out_path)
             }
         };
-        let file_path = JavaRender::check_path_str(template.file_path);
+        let file_path = match template.file_path.contains(".") {
+            true => template.file_path.replace(".", "/"),
+            false => JavaRender::check_path_str(template.file_path)
+        };
         let package = replace_package(file_path.clone());
         context.insert("package", &package);
         let mut temp_path = path.join(file_path);

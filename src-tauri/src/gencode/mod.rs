@@ -35,11 +35,11 @@ pub trait RenderTemplate {
         let path = match output.is_empty() {
             true => Path::new(&root).to_path_buf(),
             false => {
-                Path::new(&root).join(JavaRender::check_path_str(output))
+                Path::new(&root).join(Self::check_path_str(output))
             }
         };
-        let mut temp_path = path.join(JavaRender::check_path_str(template.file_path));
-        JavaRender::check_path(&temp_path)?;
+        let mut temp_path = path.join(Self::check_path_str(template.file_path));
+        Self::check_path(&temp_path)?;
 
         let file_name = Tera::one_off(&template.file_name, &context, true)?;
         temp_path = temp_path.join(file_name);
