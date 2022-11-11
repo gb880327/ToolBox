@@ -50,13 +50,13 @@ fn exec_ssh(server: &Server) -> Result<()> {
             if server.auth_type == Some(0 as i64) {
                 let pwd = server.password.as_ref().unwrap();
                 let pwd = reg.replace_all(pwd, "\\$0");
-                ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -p {} {}@{}",
+                ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -p {} -oHostKeyAlgorithms=+ssh-dss {}@{}",
                                                                    server.port.as_ref().unwrap(),
                                                                    server.user.as_ref().unwrap(),
                                                                    server.host.as_ref().unwrap()))
                     .replace("{pwd}", &pwd);
             } else {
-                ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -i {} -p {} {}@{}",
+                ssh_script = ssh_script.replace("{ssh}", &*format!("ssh -i {} -p {} -oHostKeyAlgorithms=+ssh-dss {}@{}",
                                                                    server.private_key.as_ref().cloned().unwrap(),
                                                                    server.port.as_ref().unwrap(),
                                                                    server.user.as_ref().unwrap(),
